@@ -1,7 +1,5 @@
 # docs
 
-- `proposal.pdf`: the project proposal
-- `architecture.pdf`: design decisions, technology choices, measurement plan and scale-up estimates
-- `img/`: pictures used in the README and the report
+Report, EuroHPC scale-up plan and slides will be added here.
 
-The report, the EuroHPC scale-up plan and the slides will be added here.
+- `img/`: pictures used in the README and the report

@@ -12,5 +12,3 @@ C sources for the simulator. Planned layout:
     output.c          checksum, counts, snapshots
     timers.c, report.c
     bench/            small hardware benchmarks (ping-pong)
-
-See docs/architecture.pdf for the reasoning behind this split.

@@ -26,8 +26,6 @@ This is a stencil computation: each cell only looks at its neighbours, does very
 | Optimization | overlap of halo exchange with computation, compared before and after |
 | Scale-up | estimate for a Spain-wide ensemble on a EuroHPC system |
 
-The reasoning behind these choices, the measurement plan and the scale-up numbers are in [docs/architecture.pdf](docs/architecture.pdf).
-
 ## Repository layout
 
     src/        C sources (coming), src/bench for small hardware benchmarks
@@ -37,11 +35,11 @@ The reasoning behind these choices, the measurement plan and the scale-up number
     env/        module versions and Python requirements
     data/       small inputs and notes on getting real terrain data
     results/    raw logs, CSV tables and figures
-    docs/       proposal, architecture notes, report, scale-up plan, slides
+    docs/       report, scale-up plan, slides
 
 ## Status
 
-- [x] Project proposal and architecture notes
+- [x] Project proposal and design
 - [x] NumPy prototype of the fire rules
 - [x] Slurm templates and environment capture script
 - [ ] Serial baseline in C
