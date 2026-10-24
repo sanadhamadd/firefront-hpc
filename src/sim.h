@@ -1,0 +1,29 @@
+#ifndef FF_SIM_H
+#define FF_SIM_H
+
+#include <stdint.h>
+
+#include "params.h"
+
+typedef struct Sim Sim;
+
+Sim *sim_create(const Params *p);
+void sim_free(Sim *s);
+
+/* advance the fire by one time step */
+void sim_step(Sim *s);
+
+int sim_steps_done(const Sim *s);
+long long sim_count_burning(const Sim *s);
+long long sim_count_burnt(const Sim *s);
+
+/* sum of a hash over all cells; does not depend on how the grid is stored or split */
+uint64_t sim_checksum(const Sim *s);
+
+/* state of one cell, x = column, y = row, both 0-based */
+uint8_t sim_state_at(const Sim *s, int x, int y);
+
+/* write the current state as a grey scale PGM image; returns 0 on success */
+int sim_write_pgm(const Sim *s, const char *path);
+
+#endif
