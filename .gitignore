@@ -1,0 +1,22 @@
+# build output
+build/
+*.o
+*.a
+firefront_*
+!firefront_*.md
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# local data and scratch
+data/real/
+*.bin
+*.npy
+scratch/
+.DS_Store
+
+# slurm output that we do not want to commit by accident (copy the ones we need into results/raw/)
+slurm-*.out

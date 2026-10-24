@@ -1,0 +1,6 @@
+# Python tools (plots, log parsing, the NumPy prototype)
+numpy
+matplotlib
+pandas
+# only needed for real terrain data, see data/README.md
+# rasterio

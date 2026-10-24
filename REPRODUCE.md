@@ -1,0 +1,37 @@
+# Reproducing the results
+
+This file will contain the exact commands for every main figure in the report. It is filled in step by step as the experiments are done. Nothing below has been run yet.
+
+## 1. Get the code
+
+    git clone https://github.com/sanadhamadd/firefront-hpc.git
+    cd firefront-hpc
+
+## 2. Environment
+
+On the cluster: load the modules listed in `env/modules.txt`, then check what you have with
+
+    bash tools/capture_env.sh
+
+For the Python tools:
+
+    pip install -r env/requirements.txt
+
+## 3. Build
+
+To be written when the first C files are in.
+
+## 4. Run an experiment
+
+Job scripts are in `slurm/`. Parameters are passed as environment variables, for example
+
+    sbatch --export=ALL,NX=8192,STEPS=500 slurm/omp.sbatch
+
+## 5. Collect results and make figures
+
+    python tools/parse_logs.py results/raw > results/tables/all.csv
+    python tools/make_plots.py results/tables/all.csv results/figures
+
+## What gets recorded for every run
+
+Git commit, compiler and flags, loaded modules, random seed, Slurm resources, the exact command line and the OpenMP settings. Each run prints one `RESULT` line that the parsing script reads. The environment snapshot is saved next to the log.
