@@ -28,8 +28,8 @@ This is a stencil computation: each cell only looks at its neighbours, does very
 
 ## Repository layout
 
-    src/        C sources (coming), src/bench for small hardware benchmarks
-    tests/      correctness tests (coming)
+    src/        C sources of the simulator, src/bench for small hardware benchmarks
+    tests/      correctness tests
     tools/      NumPy prototype, environment capture, log parsing and plotting scripts
     slurm/      job script templates
     env/        module versions and Python requirements
@@ -37,13 +37,23 @@ This is a stencil computation: each cell only looks at its neighbours, does very
     results/    raw logs, CSV tables and figures
     docs/       report, scale-up plan, slides
 
+## Build and run (serial version)
+
+    make            # builds build/firefront_serial
+    make test       # model checks and command line checks
+    ./build/firefront_serial --nx 1024 --ny 1024 --steps 200 --snapshot fire.pgm
+
+`./build/firefront_serial --help` lists all options (grid size, steps, seed, wind, humidity, ignition point, ...). The program prints one `RESULT` line with time, throughput, burnt cells and a checksum of the final grid. Two runs with the same options give the same checksum, which is how we will check the parallel versions later.
+
+`make omp` builds the OpenMP version. It needs a compiler with OpenMP (on the cluster, `make CC=gcc omp` after loading the GCC module). It has not been run there yet.
+
 ## Status
 
 - [x] Project proposal and design
 - [x] NumPy prototype of the fire rules
 - [x] Slurm templates and environment capture script
-- [ ] Serial baseline in C
-- [ ] OpenMP version
+- [x] Serial baseline in C, with tests
+- [ ] OpenMP version (code is prepared, still to be run and measured)
 - [ ] MPI version (halo exchange, process grid)
 - [ ] Hybrid runs on 1 and 2 nodes
 - [ ] GPU port

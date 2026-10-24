@@ -20,3 +20,4 @@ scratch/
 
 # slurm output that we do not want to commit by accident (copy the ones we need into results/raw/)
 slurm-*.out
+*.pgm

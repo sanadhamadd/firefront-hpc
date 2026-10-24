@@ -19,7 +19,11 @@ For the Python tools:
 
 ## 3. Build
 
-To be written when the first C files are in.
+    make            # serial version, build/firefront_serial
+    make test       # checks
+    make CC=gcc omp # OpenMP version (needs gcc with OpenMP, e.g. from the cluster module)
+
+The MPI and GPU builds will be added with their sources.
 
 ## 4. Run an experiment
 
