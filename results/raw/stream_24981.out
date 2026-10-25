@@ -1,0 +1,254 @@
+rep=3
+== node state (start) ==
+node: haskell
+time: 2026-10-25T13:34:43+01:00
+load: 15.34 10.42 5.01 5/6242 2747701
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24981        cpu   self  R       0:03     64      16G haskell
+     24921 interactive  other  R    2:42:47      2       4G haskell
+== resources of this job ==
+cpus usable: 0-19,21-32,256-275,277-288
+physcpubind: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 21 22 23 24 25 26 27 28 29 30 31 32 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 277 278 279 280 281 282 283 284 285 286 287 288 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=64,mem=16G,node=1,billing=64
+TRES=cpu=64,mem=16G,node=1,billing=64
+== run: 1 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+stream triad: 3 x 533333333 doubles (12.80 GB), 1 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=1 t_best=0.462926 bw_gbs=27.65 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2747752 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                  12208.86            0.00        12208.86
+----------------  --------------- --------------- ---------------
+Total                    12208.89            0.00        12208.89
+== run: 2 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 2 on cpus 0,256
+thread 1 of 2 on cpus 1,257
+stream triad: 3 x 533333333 doubles (12.80 GB), 2 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=2 t_best=0.463771 bw_gbs=27.60 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2747813 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                  12208.87            0.00        12208.87
+----------------  --------------- --------------- ---------------
+Total                    12208.91            0.00        12208.91
+== run: 4 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 4 on cpus 0,256
+thread 1 of 4 on cpus 1,257
+thread 2 of 4 on cpus 2,258
+thread 3 of 4 on cpus 3,259
+stream triad: 3 x 533333333 doubles (12.80 GB), 4 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=4 t_best=0.457403 bw_gbs=27.98 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2747863 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                   4070.84            0.00         4070.84
+----------------  --------------- --------------- ---------------
+Total                     4070.88            0.00         4070.88
+== run: 8 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 8 on cpus 0,256
+thread 1 of 8 on cpus 1,257
+thread 2 of 8 on cpus 2,258
+thread 3 of 8 on cpus 3,259
+thread 4 of 8 on cpus 4,260
+thread 5 of 8 on cpus 5,261
+thread 6 of 8 on cpus 6,262
+thread 7 of 8 on cpus 7,263
+stream triad: 3 x 533333333 doubles (12.80 GB), 8 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=8 t_best=0.453399 bw_gbs=28.23 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2747906 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                   4070.91            0.00         4070.91
+----------------  --------------- --------------- ---------------
+Total                     4070.95            0.00         4070.95
+== run: 16 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 16 on cpus 0,256
+thread 1 of 16 on cpus 1,257
+thread 2 of 16 on cpus 2,258
+thread 3 of 16 on cpus 3,259
+thread 4 of 16 on cpus 4,260
+thread 5 of 16 on cpus 5,261
+thread 6 of 16 on cpus 6,262
+thread 7 of 16 on cpus 7,263
+thread 8 of 16 on cpus 8,264
+thread 9 of 16 on cpus 9,265
+thread 10 of 16 on cpus 10,266
+thread 11 of 16 on cpus 11,267
+thread 12 of 16 on cpus 12,268
+thread 13 of 16 on cpus 13,269
+thread 14 of 16 on cpus 14,270
+thread 15 of 16 on cpus 15,271
+stream triad: 3 x 533333333 doubles (12.80 GB), 16 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=16 t_best=0.267306 bw_gbs=47.89 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2747957 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                   4070.95            0.00         4070.95
+----------------  --------------- --------------- ---------------
+Total                     4070.99            0.00         4070.99
+== run: 32 thread(s), one per physical core ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+stream triad: 3 x 533333333 doubles (12.80 GB), 32 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=32 t_best=0.191856 bw_gbs=66.72 commit=7c686c8 compiler=13.2.0 places=cores
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2748002 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.02            0.00            0.02
+Stack                        0.02            0.00            0.02
+Private                  12209.08            0.00        12209.08
+----------------  --------------- --------------- ---------------
+Total                    12209.12            0.00        12209.12
+== run: 64 threads on the hyper-threads of the 32 cores ==
+command: ./build/stream --doubles 1.6e9
+thread 0 of 64 on cpus 0
+thread 1 of 64 on cpus 256
+thread 2 of 64 on cpus 1
+thread 3 of 64 on cpus 257
+thread 4 of 64 on cpus 2
+thread 5 of 64 on cpus 258
+thread 6 of 64 on cpus 3
+thread 7 of 64 on cpus 259
+thread 8 of 64 on cpus 4
+thread 9 of 64 on cpus 260
+thread 10 of 64 on cpus 5
+thread 11 of 64 on cpus 261
+thread 12 of 64 on cpus 6
+thread 13 of 64 on cpus 262
+thread 14 of 64 on cpus 7
+thread 15 of 64 on cpus 263
+thread 16 of 64 on cpus 8
+thread 17 of 64 on cpus 264
+thread 18 of 64 on cpus 9
+thread 19 of 64 on cpus 265
+thread 20 of 64 on cpus 10
+thread 21 of 64 on cpus 266
+thread 22 of 64 on cpus 11
+thread 23 of 64 on cpus 267
+thread 24 of 64 on cpus 12
+thread 25 of 64 on cpus 268
+thread 26 of 64 on cpus 13
+thread 27 of 64 on cpus 269
+thread 28 of 64 on cpus 14
+thread 29 of 64 on cpus 270
+thread 30 of 64 on cpus 15
+thread 31 of 64 on cpus 271
+thread 32 of 64 on cpus 16
+thread 33 of 64 on cpus 272
+thread 34 of 64 on cpus 17
+thread 35 of 64 on cpus 273
+thread 36 of 64 on cpus 18
+thread 37 of 64 on cpus 274
+thread 38 of 64 on cpus 19
+thread 39 of 64 on cpus 275
+thread 40 of 64 on cpus 21
+thread 41 of 64 on cpus 277
+thread 42 of 64 on cpus 22
+thread 43 of 64 on cpus 278
+thread 44 of 64 on cpus 23
+thread 45 of 64 on cpus 279
+thread 46 of 64 on cpus 24
+thread 47 of 64 on cpus 280
+thread 48 of 64 on cpus 25
+thread 49 of 64 on cpus 281
+thread 50 of 64 on cpus 26
+thread 51 of 64 on cpus 282
+thread 52 of 64 on cpus 27
+thread 53 of 64 on cpus 283
+thread 54 of 64 on cpus 28
+thread 55 of 64 on cpus 284
+thread 56 of 64 on cpus 29
+thread 57 of 64 on cpus 285
+thread 58 of 64 on cpus 30
+thread 59 of 64 on cpus 286
+thread 60 of 64 on cpus 31
+thread 61 of 64 on cpus 287
+thread 62 of 64 on cpus 32
+thread 63 of 64 on cpus 288
+stream triad: 3 x 533333333 doubles (12.80 GB), 64 thread(s), best of 10
+RESULT variant=stream n=533333333 reps=10 ranks=1 threads=64 t_best=0.192894 bw_gbs=66.36 commit=7c686c8 compiler=13.2.0 places=threads
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2748065 (stream)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.04            0.00            0.04
+Stack                        0.03            0.00            0.03
+Private                  12209.31            0.00        12209.31
+----------------  --------------- --------------- ---------------
+Total                    12209.38            0.00        12209.38
+== node state (end) ==
+node: haskell
+time: 2026-10-25T13:35:22+01:00
+load: 10.79 9.82 5.03 3/6251 2748144
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24981        cpu   self  R       0:42     64      16G haskell
+     24921 interactive  other  R    2:43:26      2       4G haskell

@@ -10,7 +10,9 @@ thread per core), ranks x threads / 2 for places=threads (two threads per core
 on its hyper-threads). Runs with places=threads are drawn as a separate star
 marker, not as part of the scaling line; their efficiency is per physical core.
 Writes four PNGs: wall time, speed-up, parallel efficiency and MCUPS, each
-against cores.
+against cores, from all runs except the size sweep. If the logs contain the grid size sweep (files size_sweep_*.out from
+slurm/size_sweep.sbatch), a fifth PNG shows MCUPS against grid size, one line per
+humidity, with the memory limit at 6 bytes per update from the 32-core STREAM runs.
 
 Speed-up is T(1) / T(p). T(1) is the median serial time for the same nx; if
 there is no serial run for that nx, the variant's own 1-core run is used, and
@@ -204,6 +206,51 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
     print("wrote", path, file=sys.stderr)
 
 
+def plot_size_sweep(csv_path, path):
+    """MCUPS against grid size for the size sweep, one line per humidity (median, min-max).
+
+    Only the sweep's own runs are used, so every point comes from the same cores. The
+    grey line is the memory limit: median 32-core STREAM bandwidth / 6 bytes per update."""
+    raw = pd.read_csv(csv_path, dtype={"commit": str, "checksum": str, "job_id": str, "humidity": str})
+    if "file" not in raw:
+        return
+    sw = load(csv_path)
+    sw = sw[sw.file.astype(str).str.startswith("size_sweep_") & ~sw.ht]
+    if sw.nx.nunique() < 2:
+        return
+    sizes = sorted(sw.nx.unique())
+    fig, ax = new_axes(sizes, "MCUPS (million cell updates / s)")
+    ax.set_xticklabels([f"{n}²" for n in sizes])
+    ax.set_xlabel(f"grid size ({int(sw.cores.median())} physical cores)")
+
+    handles = []
+    stream = raw[(raw.get("variant") == "stream") & (raw.get("places") == "cores")]
+    stream = stream[pd.to_numeric(stream.threads, errors="coerce") == int(sw.cores.median())]
+    if not stream.empty:
+        limit = pd.to_numeric(stream.bw_gbs).median() * 1e9 / 6 / 1e6
+        ax.axhline(limit, color="#B5B5B5", linewidth=1.2, linestyle="--", zorder=1)
+        handles.append(Line2D([], [], color="#B5B5B5", linewidth=1.2, linestyle="--",
+                              label=f"memory limit, 6 B per update ({limit:,.0f})"))
+    passes = [("0.2", NAVY, "o", "-", "default (humidity 0.2)"),
+              ("1", TERRACOTTA, "s", "--", "humidity 1, no spread")]
+    for hum, colour, marker, ls, label in passes:
+        g = sw[sw.humidity == hum].groupby("nx").mcups.agg(["median", "min", "max"])
+        if g.empty:
+            continue
+        ax.errorbar(g.index, g["median"], yerr=[g["median"] - g["min"], g["max"] - g["median"]],
+                    color=colour, marker=marker, linestyle=ls, linewidth=2, markersize=7,
+                    markeredgecolor="white", markeredgewidth=1.2, capsize=3, elinewidth=1.2, zorder=3)
+        handles.append(Line2D([], [], color=colour, marker=marker, linestyle=ls, linewidth=2,
+                              markersize=7, markeredgecolor="white", label=label))
+    top = max(sw.mcups.max(), limit if not stream.empty else 0)
+    ax.set_ylim(0, top * 1.15)
+    ax.legend(handles=handles, frameon=False, fontsize=9, loc="lower right")
+    fig.tight_layout()
+    fig.savefig(path, dpi=200)
+    plt.close(fig)
+    print("wrote", path, file=sys.stderr)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("csv", help="CSV from parse_logs.py")
@@ -216,6 +263,10 @@ def main():
     out = Path(args.outdir)
     out.mkdir(parents=True, exist_ok=True)
 
+    # the size sweep has its own figure: all its runs use 32 cores on other cores of the
+    # node than E2, so it is kept out of the core-scaling figures
+    if "file" in df:
+        df = df[~df.file.astype(str).str.startswith("size_sweep_")]
     s = add_speedup(summarise(df))
     styles = series_style(s)
     no_serial = s[s.variant != "serial"]   # serial is the reference, not a curve
@@ -229,6 +280,7 @@ def main():
                 out / "efficiency_vs_cores.png", ideal="one", ylim=(0, top))
     plot_metric(s, styles, "m_med", "m_min", "m_max", "MCUPS (million cell updates / s)",
                 out / "mcups_vs_cores.png")
+    plot_size_sweep(args.csv, out / "mcups_vs_grid_size.png")
 
 
 if __name__ == "__main__":

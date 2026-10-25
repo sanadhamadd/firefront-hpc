@@ -1,0 +1,52 @@
+== node state (start) ==
+node: haskell
+time: 2026-10-25T13:29:51+01:00
+load: 1.09 1.12 1.09 2/6218 2743493
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24975        cpu   self  R       0:01      8       4G haskell
+     24921 interactive  other  R    2:37:55      2       4G haskell
+== -march that gcc picks on this node ==
+  -march=                     		znver4
+  Known valid arguments for -march= option:
+rm -rf build
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"7c686c8\" -DVARIANT=\"serial\" -o build/firefront_serial src/main.c src/sim.c src/params.c src/landscape.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"7c686c8\" -DVARIANT=\"omp\" -o build/firefront_omp src/main.c src/sim.c src/params.c src/landscape.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"7c686c8\" -o build/stream src/bench/stream.c
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"7c686c8\" -Isrc -o build/test_model tests/test_model.c src/sim.c src/params.c src/landscape.c -lm
+./build/test_model
+rng
+repeatable
+burnt cells never decrease
+fire goes out
+wind pushes the fire downwind
+  reach east 39 cells, west 0 cells
+fire does not cross the firebreak
+  burnt 4499 cells, 0 of them beyond the river
+several ignitions
+  burnt with 1 ignition 14155, with 16 ignitions 38378
+
+all checks passed
+bash tests/run_all.sh
+ok:   two runs give the same checksum
+ok:   another seed changes the checksum
+ok:   RESULT line has all fields
+ok:   tiny grid is rejected
+ok:   --ignitions 0 is rejected
+ok:   --ignitions 1 gives the same checksum as before
+ok:   default 1024 x 1024, 100 steps keeps its reference checksum
+ok:   RESULT line reports the humidity used
+ok:   OpenMP (gcc) runs with 1 thread(s)
+ok:   OpenMP with 1 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 2 thread(s)
+ok:   OpenMP with 2 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 4 thread(s)
+ok:   OpenMP with 4 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 8 thread(s)
+ok:   OpenMP with 8 thread(s) gives the serial checksum
+== node state (end) ==
+node: haskell
+time: 2026-10-25T13:29:53+01:00
+load: 1.16 1.13 1.10 2/6215 2743666
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24975        cpu   self  R       0:03      8       4G haskell
+     24921 interactive  other  R    2:37:57      2       4G haskell

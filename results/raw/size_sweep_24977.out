@@ -1,0 +1,363 @@
+rep=2
+== node state (start) ==
+node: haskell
+time: 2026-10-25T13:31:51+01:00
+load: 10.75 3.80 2.01 2/6237 2744925
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24977        cpu   self  R       0:03     64       4G haskell
+     24921 interactive  other  R    2:39:55      2       4G haskell
+== resources of this job ==
+cpus usable: 0-19,21-32,256-275,277-288
+physcpubind: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 21 22 23 24 25 26 27 28 29 30 31 32 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 277 278 279 280 281 282 283 284 285 286 287 288 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=64,mem=4G,node=1,billing=64
+TRES=cpu=64,mem=4G,node=1,billing=64
+== pass 1 (model defaults): 2048^2, 32 threads ==
+command: ./build/firefront_omp --nx 2048 --ny 2048 --steps 400 --seed 42 --ignitions 16
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 2048 x 2048 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 thread(s)
+RESULT variant=omp nx=2048 ny=2048 steps=400 seed=42 ranks=1 threads=32 t_total=0.2021 cells_per_s=8.095e+09 burning=10326 burnt=879506 checksum=0x1e4d26aa8b648d29 commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=0.2
+== numastat -p, last sample before the end of the run ==
+no sample (run shorter than 1 s, or numastat not available)
+== pass 1 (model defaults): 4096^2, 32 threads ==
+command: ./build/firefront_omp --nx 4096 --ny 4096 --steps 400 --seed 42 --ignitions 16
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 4096 x 4096 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 thread(s)
+RESULT variant=omp nx=4096 ny=4096 steps=400 seed=42 ranks=1 threads=32 t_total=0.8000 cells_per_s=8.179e+09 burning=15768 burnt=1119685 checksum=0xff3f3d77c7394ba4 commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=0.2
+== numastat -p, last sample before the end of the run ==
+no sample (run shorter than 1 s, or numastat not available)
+== pass 1 (model defaults): 8192^2, 32 threads ==
+command: ./build/firefront_omp --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 thread(s)
+RESULT variant=omp nx=8192 ny=8192 steps=400 seed=42 ranks=1 threads=32 t_total=3.3507 cells_per_s=7.811e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=0.2
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2745053 (firefront_omp)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.04            0.00            0.04
+Stack                        0.02            0.00            0.02
+Private                    642.87            0.00          642.87
+----------------  --------------- --------------- ---------------
+Total                      642.93            0.00          642.93
+== pass 1 (model defaults): 16384^2, 32 threads ==
+command: ./build/firefront_omp --nx 16384 --ny 16384 --steps 400 --seed 42 --ignitions 16
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 16384 x 16384 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 thread(s)
+RESULT variant=omp nx=16384 ny=16384 steps=400 seed=42 ranks=1 threads=32 t_total=13.0895 cells_per_s=7.998e+09 burning=19571 burnt=1273378 checksum=0x4361dc6e9f92d45d commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=0.2
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2745100 (firefront_omp)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.04            0.00            0.04
+Stack                        0.03            0.00            0.03
+Private                      2.54            0.00            2.54
+----------------  --------------- --------------- ---------------
+Total                        2.60            0.00            2.60
+== pass 2 (--humidity 1, no spread): 2048^2, 32 threads ==
+command: ./build/firefront_omp --nx 2048 --ny 2048 --steps 400 --seed 42 --ignitions 16 --humidity 1
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 2048 x 2048 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 1.00, 32 thread(s)
+RESULT variant=omp nx=2048 ny=2048 steps=400 seed=42 ranks=1 threads=32 t_total=0.2055 cells_per_s=7.959e+09 burning=0 burnt=144 checksum=0xa94f2e81ac7d4e14 commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=1
+== numastat -p, last sample before the end of the run ==
+no sample (run shorter than 1 s, or numastat not available)
+== pass 2 (--humidity 1, no spread): 4096^2, 32 threads ==
+command: ./build/firefront_omp --nx 4096 --ny 4096 --steps 400 --seed 42 --ignitions 16 --humidity 1
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 4096 x 4096 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 1.00, 32 thread(s)
+RESULT variant=omp nx=4096 ny=4096 steps=400 seed=42 ranks=1 threads=32 t_total=0.8022 cells_per_s=8.157e+09 burning=0 burnt=144 checksum=0xa92eb1761b992b2f commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=1
+== numastat -p, last sample before the end of the run ==
+no sample (run shorter than 1 s, or numastat not available)
+== pass 2 (--humidity 1, no spread): 8192^2, 32 threads ==
+command: ./build/firefront_omp --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --humidity 1
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 1.00, 32 thread(s)
+RESULT variant=omp nx=8192 ny=8192 steps=400 seed=42 ranks=1 threads=32 t_total=3.2662 cells_per_s=8.013e+09 burning=0 burnt=144 checksum=0x61b1674a1e2c08dc commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=1
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2745313 (firefront_omp)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.04            0.00            0.04
+Stack                        0.03            0.00            0.03
+Private                    642.83            0.00          642.83
+----------------  --------------- --------------- ---------------
+Total                      642.89            0.00          642.89
+== pass 2 (--humidity 1, no spread): 16384^2, 32 threads ==
+command: ./build/firefront_omp --nx 16384 --ny 16384 --steps 400 --seed 42 --ignitions 16 --humidity 1
+thread 0 of 32 on cpus 0,256
+thread 1 of 32 on cpus 1,257
+thread 2 of 32 on cpus 2,258
+thread 3 of 32 on cpus 3,259
+thread 4 of 32 on cpus 4,260
+thread 5 of 32 on cpus 5,261
+thread 6 of 32 on cpus 6,262
+thread 7 of 32 on cpus 7,263
+thread 8 of 32 on cpus 8,264
+thread 9 of 32 on cpus 9,265
+thread 10 of 32 on cpus 10,266
+thread 11 of 32 on cpus 11,267
+thread 12 of 32 on cpus 12,268
+thread 13 of 32 on cpus 13,269
+thread 14 of 32 on cpus 14,270
+thread 15 of 32 on cpus 15,271
+thread 16 of 32 on cpus 16,272
+thread 17 of 32 on cpus 17,273
+thread 18 of 32 on cpus 18,274
+thread 19 of 32 on cpus 19,275
+thread 20 of 32 on cpus 21,277
+thread 21 of 32 on cpus 22,278
+thread 22 of 32 on cpus 23,279
+thread 23 of 32 on cpus 24,280
+thread 24 of 32 on cpus 25,281
+thread 25 of 32 on cpus 26,282
+thread 26 of 32 on cpus 27,283
+thread 27 of 32 on cpus 28,284
+thread 28 of 32 on cpus 29,285
+thread 29 of 32 on cpus 30,286
+thread 30 of 32 on cpus 31,287
+thread 31 of 32 on cpus 32,288
+firefront omp: 16384 x 16384 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 1.00, 32 thread(s)
+RESULT variant=omp nx=16384 ny=16384 steps=400 seed=42 ranks=1 threads=32 t_total=13.4432 cells_per_s=7.788e+09 burning=0 burnt=144 checksum=0x9820841089890bdf commit=7c686c8 compiler=13.2.0 ignitions=16 places=cores humidity=1
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2745378 (firefront_omp)
+                           Node 0          Node 1           Total
+                  --------------- --------------- ---------------
+Huge                         0.00            0.00            0.00
+Heap                         0.04            0.00            0.04
+Stack                        0.03            0.00            0.03
+Private                   2563.18            0.00         2563.18
+----------------  --------------- --------------- ---------------
+Total                     2563.24            0.00         2563.24
+== node state (end) ==
+node: haskell
+time: 2026-10-25T13:32:32+01:00
+load: 21.65 7.48 3.32 2/6219 2745501
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     24977        cpu   self  R       0:44     64       4G haskell
+     24921 interactive  other  R    2:40:36      2       4G haskell
