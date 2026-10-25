@@ -20,10 +20,10 @@ For the Python tools:
 ## 3. Build
 
     make            # serial version, build/firefront_serial
-    make test       # checks
+    make test       # checks, including OpenMP vs serial checksum (compiler from OMP_CC, default gcc)
     make omp        # OpenMP version, build/firefront_omp
 
-`make omp` needs gcc with OpenMP: on the cluster, load a GCC module first; on a Mac, pass Homebrew's GCC, e.g. `make CC=gcc-16 omp`.
+`make omp` needs gcc with OpenMP: on the cluster, load a GCC module first; on a Mac, pass Homebrew's GCC, e.g. `make CC=gcc-16 omp` and `OMP_CC=gcc-16 make test`. If the compiler has no OpenMP, the OpenMP test prints `skipped` instead of failing, so check that it really ran.
 
 The MPI and GPU builds will be added with their sources.
 
