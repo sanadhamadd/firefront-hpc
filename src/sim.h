@@ -23,6 +23,9 @@ uint64_t sim_checksum(const Sim *s);
 /* state of one cell, x = column, y = row, both 0-based */
 uint8_t sim_state_at(const Sim *s, int x, int y);
 
+/* top left cell (global, 0-based) of ignition patch k when p->ignitions > 1 */
+void sim_ignition_place(const Params *p, int k, int *x, int *y);
+
 /* write the current state as a grey scale PGM image; returns 0 on success */
 int sim_write_pgm(const Sim *s, const char *path);
 

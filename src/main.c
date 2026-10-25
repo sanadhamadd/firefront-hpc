@@ -73,7 +73,7 @@ int main(int argc, char **argv)
            t_total, cells_per_s, sim_count_burning(sim), sim_count_burnt(sim),
            (unsigned long long)sim_checksum(sim), GIT_COMMIT);
     print_compiler();
-    printf("\n");
+    printf(" ignitions=%d\n", p.ignitions);
 
     if (p.snapshot && sim_write_pgm(sim, p.snapshot) != 0)
         fprintf(stderr, "could not write %s\n", p.snapshot);

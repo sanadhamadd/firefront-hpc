@@ -25,6 +25,7 @@ void params_defaults(Params *p)
     p->ignite_y = -1;
     p->river = 1;
     p->snapshot = NULL;
+    p->ignitions = 1;
 }
 
 static void usage(const char *prog)
@@ -40,6 +41,7 @@ static void usage(const char *prog)
     printf("  --p0 P                base ignition probability (default 0.8)\n");
     printf("  --cell-size M         cell size in metres (default 25)\n");
     printf("  --ignite X,Y          cell where the fire starts (default: left part, middle row)\n");
+    printf("  --ignitions N         number of fire starts; N > 1 places them from the seed, off the river (default 1)\n");
     printf("  --river 0|1           firebreak column in the landscape (default 1)\n");
     printf("  --report-every N      print a progress line every N steps\n");
     printf("  --snapshot FILE       write the final state as a PGM image\n");
@@ -78,6 +80,7 @@ int params_parse(Params *p, int argc, char **argv)
         else if (is_option(a, "--river"))        p->river = atoi(v);
         else if (is_option(a, "--report-every")) p->report_every = atoi(v);
         else if (is_option(a, "--snapshot"))     p->snapshot = v;
+        else if (is_option(a, "--ignitions"))    p->ignitions = atoi(v);
         else if (is_option(a, "--ignite")) {
             if (sscanf(v, "%d,%d", &p->ignite_x, &p->ignite_y) != 2) {
                 fprintf(stderr, "--ignite needs X,Y\n");
@@ -100,6 +103,18 @@ int params_parse(Params *p, int argc, char **argv)
     }
     if (p->humidity < 0.0f || p->humidity > 1.0f) {
         fprintf(stderr, "--humidity must be between 0 and 1\n");
+        return 1;
+    }
+    if (p->ignitions < 1) {
+        fprintf(stderr, "--ignitions must be at least 1\n");
+        return 1;
+    }
+    if (p->ignitions > 1 && p->ignite_x >= 0) {
+        fprintf(stderr, "--ignite only works with one ignition; with --ignitions N > 1 the places come from the seed\n");
+        return 1;
+    }
+    if (p->ignitions > 1 && p->river && p->nx < 8) {
+        fprintf(stderr, "--ignitions N > 1 with a river needs --nx of at least 8\n");
         return 1;
     }
     return 0;

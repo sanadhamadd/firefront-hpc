@@ -21,6 +21,7 @@ typedef struct {
     int ignite_x, ignite_y;     /* first burning cell, -1 = default place */
     int river;                  /* 1 = put a firebreak column into the landscape */
     const char *snapshot;       /* write the final state as a PGM image, or NULL */
+    int ignitions;              /* number of 3 x 3 ignition patches; > 1 = placed from the seed */
 } Params;
 
 void params_defaults(Params *p);

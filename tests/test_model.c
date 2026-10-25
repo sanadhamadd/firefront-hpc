@@ -140,6 +140,34 @@ static void test_firebreak(void)
     sim_free(s);
 }
 
+static void test_ignitions(void)
+{
+    printf("several ignitions\n");
+    Params p = small_params();
+    p.nx = 256; p.ny = 256; p.steps = 200;
+    Sim *one = sim_create(&p);
+    run(one, p.steps);
+
+    p.ignitions = 16;
+    Sim *a = sim_create(&p);
+    Sim *b = sim_create(&p);
+    run(a, p.steps);
+    run(b, p.steps);
+    printf("  burnt with 1 ignition %lld, with 16 ignitions %lld\n",
+           sim_count_burnt(one), sim_count_burnt(a));
+    CHECK(sim_count_burnt(a) > sim_count_burnt(one), "16 ignitions burn more than 1");
+    CHECK(sim_checksum(a) == sim_checksum(b), "same seed gives the same checksum with 16 ignitions");
+
+    int river = landscape_river_column(p.nx);
+    int on_river = 0, x, y;
+    for (int k = 0; k < p.ignitions; k++) {
+        sim_ignition_place(&p, k, &x, &y);
+        if (x + 2 >= river && x < river + 3) on_river++;
+    }
+    CHECK(on_river == 0, "no ignition patch touches the river");
+    sim_free(one); sim_free(a); sim_free(b);
+}
+
 int main(void)
 {
     test_rng();
@@ -148,6 +176,7 @@ int main(void)
     test_fire_goes_out();
     test_wind();
     test_firebreak();
+    test_ignitions();
 
     if (failures) {
         printf("\n%d check(s) failed\n", failures);

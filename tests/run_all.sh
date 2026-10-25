@@ -29,14 +29,19 @@ c=$(checksum --nx 200 --ny 150 --steps 120 --seed 8)
 if [ "$a" != "$c" ]; then echo "ok:   another seed changes the checksum"; else echo "FAIL: seed has no effect"; fail=1; fi
 
 line=$("$bin" $args | grep '^RESULT')
-for field in variant nx ny steps seed threads t_total cells_per_s burning burnt checksum commit; do
+missing=""
+for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions; do
     case "$line" in
         *" $field="*) ;;
-        *) echo "FAIL: RESULT line has no $field"; fail=1 ;;
+        *) missing="$missing $field" ;;
     esac
 done
-echo "ok:   RESULT line has all fields"
+if [ -z "$missing" ]; then echo "ok:   RESULT line has all fields"; else echo "FAIL: RESULT line has no$missing"; fail=1; fi
 
 if "$bin" --nx 2 >/dev/null 2>&1; then echo "FAIL: tiny grid was accepted"; fail=1; else echo "ok:   tiny grid is rejected"; fi
+if "$bin" --ignitions 0 >/dev/null 2>&1; then echo "FAIL: --ignitions 0 was accepted"; fail=1; else echo "ok:   --ignitions 0 is rejected"; fi
+
+d=$(checksum $args --ignitions 1)
+check "--ignitions 1 gives the same checksum as before" "$a" "$d"
 
 exit $fail
