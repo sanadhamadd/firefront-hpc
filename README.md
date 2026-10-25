@@ -54,7 +54,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 | Ignitions | Default: one 3×3 patch with its corner at (nx/6, ny/2); `--ignite X,Y` puts it at another cell. `--ignitions N` with N > 1 places N patches at positions drawn from the seed with the hash RNG, in global coordinates and never on the river (16 in timing runs). N = 1 keeps the old checksums |
 | Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
 
-**Checks** (`make test`, on the serial build): same seed → same result, burnt cells never decrease, a damp fire goes out, wind pushes the fire downwind, the fire does not cross the river. These are plausibility checks, not physical validation.
+**Checks** (`make test`): same seed → same result, burnt cells never decrease, a damp fire goes out, wind pushes the fire downwind, the fire does not cross the river, 16 ignitions burn more than 1. These are plausibility checks, not physical validation. `make test` also builds the OpenMP version and checks that 1, 2, 4 and 8 threads give the serial checksum (512×512, 100 steps, `--ignitions 16`); it prints `skipped` if the compiler has no OpenMP.
 
 **Time step.** Timing runs fix the *number of steps*. For a fixed *simulated* time, 100 m → 25 m costs ≈ 64× more work (16× cells, ≈ 4× steps); that number is used in the EuroHPC scale-up plan.
 
@@ -127,11 +127,11 @@ flowchart LR
 ## 6. Build and run
 
     make                 # serial version -> build/firefront_serial
-    make test            # model checks and command-line checks (serial build)
+    make test            # model checks, command-line checks, OpenMP checksum vs serial
     make omp             # OpenMP version -> build/firefront_omp (needs gcc with OpenMP)
     make clean           # remove build/
 
-`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. MPI and GPU targets will be added with their sources.
+`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. MPI and GPU targets will be added with their sources.
 
     ./build/firefront_serial --nx 1024 --ny 1024 --steps 200 --snapshot fire.pgm
     OMP_NUM_THREADS=4 ./build/firefront_omp --nx 1024 --ny 1024 --steps 200
@@ -159,7 +159,7 @@ flowchart LR
 
     src/        C sources of the simulator; src/bench for hardware benchmarks (to do)
     tests/      correctness tests
-    tools/      NumPy prototype, environment capture; log parsing and plotting scripts (to do)
+    tools/      NumPy prototype, environment capture, log parsing and plotting scripts
     slurm/      job script templates
     env/        module versions (to fill in on the cluster) and Python requirements
     data/       notes on getting real terrain data
@@ -177,7 +177,8 @@ flowchart LR
 - [x] Slurm templates and environment capture script (MPI and GPU templates wait for their binaries)
 - [ ] Cluster check: modules, cores per node, GPU (`env/modules.txt`)
 - [x] `--ignitions N` option
-- [ ] Log parsing and plotting scripts, STREAM benchmark
+- [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)
+- [ ] STREAM benchmark
 - [ ] E1 baseline and OpenMP thread scaling on the cluster
 - [ ] MPI version (strips, blocks, two-phase halo)
 - [ ] Hybrid runs on 1 and 2 nodes
