@@ -11,4 +11,4 @@ Job templates. They take their parameters from environment variables so one scri
 | hybrid.sbatch | MPI + OpenMP, 1 or 2 nodes |
 | gpu.sbatch | CUDA build on one GPU |
 
-All of them write their log to `results/raw/` and save an environment snapshot next to it. The binaries are built into `build/` (the Makefile will be added together with the first source files).
+All of them write their log to `results/raw/` and save an environment snapshot next to it. The scripts do not build anything: run `make` (and `make omp`) on the cluster first, so the binaries are in `build/`. `firefront_mpi` and `firefront_cuda` do not exist yet; their make targets will be added with the MPI and GPU sources.

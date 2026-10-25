@@ -21,7 +21,9 @@ For the Python tools:
 
     make            # serial version, build/firefront_serial
     make test       # checks
-    make CC=gcc omp # OpenMP version (needs gcc with OpenMP, e.g. from the cluster module)
+    make omp        # OpenMP version, build/firefront_omp
+
+`make omp` needs gcc with OpenMP: on the cluster, load a GCC module first; on a Mac, pass Homebrew's GCC, e.g. `make CC=gcc-16 omp`.
 
 The MPI and GPU builds will be added with their sources.
 
