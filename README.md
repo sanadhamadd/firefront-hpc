@@ -52,7 +52,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 | Randomness | SplitMix64 hash of (seed, global cell, step), so results don't depend on ranks or threads |
 | Landscape | Fuel and elevation are smooth noise generated from the **global** cell position and the seed, so each rank builds its own part without reading a file |
 | Ignitions | Default: one 3×3 patch with its corner at (nx/6, ny/2); `--ignite X,Y` puts it at another cell. `--ignitions N` with N > 1 places N patches at positions drawn from the seed with the hash RNG, in global coordinates and never on the river (16 in timing runs). N = 1 keeps the old checksums |
-| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
+| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
 
 **Checks** (`make test`): same seed → same result, burnt cells never decrease, a damp fire goes out, wind pushes the fire downwind, the fire does not cross the river, 16 ignitions burn more than 1. These are plausibility checks, not physical validation. `make test` also builds the OpenMP version and checks that 1, 2, 4 and 8 threads give the serial checksum (512×512, 100 steps, `--ignitions 16`); it prints `skipped` if the compiler has no OpenMP.
 
@@ -209,7 +209,7 @@ flowchart LR
 | Phase | Who | Hand-over |
 |---|---|---|
 | 0 | Sanad | Done: serial simulator, tests, repo, Slurm templates |
-| 1 | Alicia | Tag `v0.2-cluster`: E1 + thread-scaling logs, numbers in `docs/handover.md` (to be created) |
+| 1 | Alicia | Tag `v0.2-cluster`: E1 + thread-scaling logs, numbers in [docs/handover.md](docs/handover.md) |
 | 2 | Sanad | Tag `v0.3-mpi`: same checksum as serial for every rank count; E2 + E5 logs |
 | 3a | Alejandro | Hybrid E3, E4, E6 and the scaling figures |
 | 3b | Rodrigo | Overlap optimization, E7, E8, bottleneck evidence |
