@@ -3,7 +3,7 @@
 Usage:
     python tools/make_plots.py results/tables/all.csv results/figures
 
-Runs with the same variant, nx and cores are one point: the median over the
+Runs with the same variant, nx, humidity and cores are one point: the median over the
 repetitions, with min and max as error bars. Cores are physical cores, taken
 from the places field of the RESULT line: ranks x threads for places=cores (one
 thread per core), ranks x threads / 2 for places=threads (two threads per core
@@ -16,6 +16,11 @@ Speed-up is T(1) / T(p). T(1) is the median serial time for the same nx; if
 there is no serial run for that nx, the variant's own 1-core run is used, and
 if that is missing too the series is left out of the speed-up and efficiency
 plots (a message says so).
+
+Humidity separates runs that do different work per cell (e.g. the two passes of
+slurm/size_sweep.sbatch). Logs from before the humidity field existed all used the
+default, 0.2, so a missing value counts as 0.2. When the data has more than one
+humidity, the legend shows it (H=...).
 """
 import argparse
 import sys
@@ -40,11 +45,17 @@ VARIANT_MARKER = {"omp": "o", "mpi": "s", "hybrid": "^", "serial": "D"}
 OTHER_MARKERS = ["v", "P", "X", "h"]
 # largest grid solid, smaller grids dashed and dotted
 LINESTYLES = ["-", "--", ":", "-."]
+SERIES = ["variant", "nx", "humidity"]   # one line per combination
+DEFAULT_HUMIDITY = "0.2"                 # logs before the humidity field all used it
 
 
 def load(csv_path):
     # identifiers stay text: a commit like 610e539 would otherwise be read as the number 610e539
-    df = pd.read_csv(csv_path, dtype={"commit": str, "checksum": str, "job_id": str})
+    # humidity stays text too, so 0.2 groups as printed and is not split by float rounding
+    df = pd.read_csv(csv_path, dtype={"commit": str, "checksum": str, "job_id": str, "humidity": str})
+    if "humidity" not in df:
+        df["humidity"] = DEFAULT_HUMIDITY
+    df["humidity"] = df["humidity"].fillna(DEFAULT_HUMIDITY)
     for col in ("ranks", "threads"):
         if col not in df:
             df[col] = 1
@@ -61,8 +72,8 @@ def load(csv_path):
 
 
 def summarise(df):
-    """One row per (variant, nx, cores, ht): median, min and max of time and MCUPS."""
-    keys = ["variant", "nx", "cores", "ht"]
+    """One row per (variant, nx, humidity, cores, ht): median, min and max of time and MCUPS."""
+    keys = SERIES + ["cores", "ht"]
     for key, g in df.groupby(keys):
         for col in ("ny", "steps", "ignitions"):
             if col in g and g[col].nunique() > 1:
@@ -81,19 +92,19 @@ def add_speedup(s):
     s = s.copy()
     for col in ("sp_med", "sp_lo", "sp_hi"):
         s[col] = float("nan")
-    for (variant, nx), g in s.groupby(["variant", "nx"]):
-        serial = s[(s.variant == "serial") & (s.nx == nx) & (s.cores == 1) & ~s.ht]
+    for (variant, nx, hum), g in s.groupby(SERIES):
+        serial = s[(s.variant == "serial") & (s.nx == nx) & (s.humidity == hum) & (s.cores == 1) & ~s.ht]
         own = g[(g.cores == 1) & ~g.ht]
         if len(serial):
             t1, base = serial.t_med.iloc[0], "serial"
         elif len(own):
             t1, base = own.t_med.iloc[0], f"{variant} on 1 core"
         else:
-            print(f"note: no 1-core run for {variant} nx={nx}, left out of speed-up",
+            print(f"note: no 1-core run for {variant} nx={nx} humidity={hum}, left out of speed-up",
                   file=sys.stderr)
             continue
         if variant != "serial":
-            print(f"speed-up of {variant} nx={nx} is relative to {base}", file=sys.stderr)
+            print(f"speed-up of {variant} nx={nx} humidity={hum} is relative to {base}", file=sys.stderr)
         idx = g.index
         s.loc[idx, "sp_med"] = t1 / s.loc[idx, "t_med"]
         s.loc[idx, "sp_lo"] = t1 / s.loc[idx, "t_max"]
@@ -104,18 +115,21 @@ def add_speedup(s):
 
 
 def series_style(s):
-    """Colour and marker by variant, line style by grid size, so identity never relies on colour alone."""
-    sizes = sorted(s.nx.unique(), reverse=True)
+    """Colour and marker by variant, line style by grid size and humidity, so identity never
+    relies on colour alone."""
+    sizes = sorted({(nx, hum) for nx, hum in zip(s.nx, s.humidity)}, key=lambda t: (-t[0], t[1]))
     others = sorted(v for v in s.variant.unique() if v not in VARIANT_MARKER)
+    several_hum = s.humidity.nunique() > 1
     styles = {}
-    for variant, nx in s.groupby(["variant", "nx"]).groups:
+    for variant, nx, hum in s.groupby(SERIES).groups:
         marker = VARIANT_MARKER.get(variant)
         if marker is None:
             marker = OTHER_MARKERS[others.index(variant) % len(OTHER_MARKERS)]
-        styles[(variant, nx)] = dict(
+        styles[(variant, nx, hum)] = dict(
             color=VARIANT_COLOUR.get(variant, GREY),
             marker=marker,
-            linestyle=LINESTYLES[sizes.index(nx) % len(LINESTYLES)],
+            linestyle=LINESTYLES[sizes.index((nx, hum)) % len(LINESTYLES)],
+            label=f"{variant}, {nx}²" + (f", H={hum}" if several_hum else ""),
         )
     return styles
 
@@ -148,9 +162,9 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
     handles, star_handles = [], []
     if ideal:
         handles.append(Line2D([], [], color="#B5B5B5", linewidth=1.2, linestyle="--", label="ideal"))
-    for (variant, nx), g_all in s.groupby(["variant", "nx"]):
+    for key, g_all in s.groupby(SERIES):
         g_all = g_all.dropna(subset=[med])
-        st = styles[(variant, nx)]
+        st = styles[key]
         # hyper-thread runs: a separate open star at their number of physical cores
         h = g_all[g_all.ht]
         if not h.empty:
@@ -159,7 +173,7 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
                         markeredgewidth=1.5, capsize=3, elinewidth=1.2, zorder=4)
             star_handles.append(Line2D([], [], color=st["color"], marker="*", linestyle="none",
                                   markersize=12, markerfacecolor="white", markeredgewidth=1.5,
-                                  label=f"{variant}, {nx}², 2 threads per core"))
+                                  label=f"{st['label']}, 2 threads per core"))
         g = g_all[~g_all.ht]
         if g.empty:
             continue
@@ -172,7 +186,7 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
         handles.append(Line2D([], [], color=st["color"], marker=st["marker"],
                               linestyle=st["linestyle"] if len(g) > 1 else "none",
                               linewidth=2, markersize=7, markeredgecolor="white",
-                              label=f"{variant}, {nx}²"))
+                              label=st["label"]))
     if logy:
         ax.set_yscale("log")
         ax.yaxis.set_major_locator(LogLocator(base=10, subs=(1, 2, 5)))

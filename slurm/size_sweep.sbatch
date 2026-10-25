@@ -24,9 +24,8 @@
 # on every grid nearly every cell is "unburnt, no burning neighbour" and does the same
 # work. That pass compares the sizes on equal terms.
 #
-# Note: the RESULT line has no humidity field, so the two passes can only be told apart
-# by their order in the log (pass 1 first) or by their burnt count (about 144 cells with
-# --humidity 1, the 16 starting patches).
+# The RESULT line ends with humidity=..., and make_plots.py groups by it, so the two
+# passes stay apart in the table and the figures.
 #
 # Resources as in E2: 32 whole cores on one socket of haskell (--cpus-per-task=64 with
 # --hint=multithread counts both hardware threads). 16384^2 needs 2.7 GB, so --mem=4G.

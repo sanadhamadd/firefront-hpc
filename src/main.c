@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     print_compiler();
     printf(" ignitions=%d places=", p.ignitions);
     print_places();
-    printf("\n");
+    printf(" humidity=%g\n", p.humidity);
 
     if (p.snapshot && sim_write_pgm(sim, p.snapshot) != 0)
         fprintf(stderr, "could not write %s\n", p.snapshot);

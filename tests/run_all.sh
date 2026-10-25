@@ -30,7 +30,7 @@ if [ "$a" != "$c" ]; then echo "ok:   another seed changes the checksum"; else e
 
 line=$("$bin" $args | grep '^RESULT')
 missing=""
-for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places; do
+for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity; do
     case "$line" in
         *" $field="*) ;;
         *) missing="$missing $field" ;;
@@ -43,6 +43,14 @@ if "$bin" --ignitions 0 >/dev/null 2>&1; then echo "FAIL: --ignitions 0 was acce
 
 d=$(checksum $args --ignitions 1)
 check "--ignitions 1 gives the same checksum as before" "$a" "$d"
+
+# reference checksum of the default model, recorded before fields were appended to the
+# RESULT line; it must never change unless the model itself is changed on purpose
+ref=$(checksum --nx 1024 --ny 1024 --steps 100)
+check "default 1024 x 1024, 100 steps keeps its reference checksum" "0x74cfadfb78e73134" "$ref"
+
+h=$("$bin" --nx 64 --ny 64 --steps 5 --humidity 0.4 | grep '^RESULT' | sed 's/.* humidity=\([^ ]*\).*/\1/')
+check "RESULT line reports the humidity used" "0.4" "$h"
 
 # OpenMP must give the serial checksum for any number of threads.
 # The compiler comes from OMP_CC (default gcc); -B rebuilds so the binary really comes from it.
