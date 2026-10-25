@@ -27,7 +27,11 @@ REP=${REP:-1}
 source slurm/job_helpers.sh
 
 module purge
+# The node also has a system mpirun (Open MPI 5.0.7). Build and run must use this module's MPI,
+# so load it before srun and check in the log that mpicc/mpirun come from it (env/cluster.md).
 module load OpenMPI/4.1.6-GCC-13.2.0 || exit 1   # also loads GCC/13.2.0, see env/modules.txt
+echo "mpicc: $(command -v mpicc)  mpirun: $(command -v mpirun)"
+mpirun --version 2>&1 | head -n 1
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export OMP_PROC_BIND=close

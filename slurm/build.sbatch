@@ -17,6 +17,8 @@
 #
 # Pinned to haskell (--nodelist): the -march=native build and every timed run then use
 # the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
+# MPI phase: when an MPI target is added, also load OpenMPI/4.1.6-GCC-13.2.0 before building
+# (the node has a different system mpirun, Open MPI 5.0.7; see env/cluster.md).
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/build_%j.out
 #SBATCH --partition=cpu

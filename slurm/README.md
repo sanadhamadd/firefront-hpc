@@ -18,13 +18,14 @@ The scripts **build nothing**. Build on a compute node first, wait for the job t
 | omp.sbatch | general OpenMP template, threads from `--cpus-per-task` (at most 32) |
 | hybrid.sbatch | MPI + OpenMP, 2 nodes × 4 ranks × 4 cores (waits for `firefront_mpi`) |
 | gpu.sbatch | CUDA build on one GPU (waits for `firefront_cuda`) |
+| size_sweep.sbatch | 32 threads, grids 2048², 4096², 8192², 16384²; second pass with `--humidity 1` (no spread); does the cache change the throughput? |
 | job_helpers.sh | shared functions the jobs source: node state, job resources, run with `numastat` |
 
 **Limits** (student QOS, see `env/cluster.md`): at most 64 CPUs per user at a time, which is 32 cores because Slurm counts both hardware threads of a core; at most 4 running and 8 queued jobs. E2 and STREAM therefore ask for `--cpus-per-task=64 --hint=multithread` (32 whole cores) and run their thread series inside one job. STREAM thus measures the bandwidth available to 32 cores, not to the whole node.
 
 **Timing noise.** The cpu partition lets two jobs share the same cores (`OverSubscribe=FORCE:2`), and `--exclusive` cannot prevent that, so the scripts do not use it. Instead:
 - build, E1, E2 and STREAM have the same job name and `--dependency=singleton`, so only one of them runs at a time and our own jobs never compete;
-- every job logs the node, the load average and `squeue -w <node>` at the start and the end, plus the CPUs it really got (`NumCPUs`, usable CPU list, `numactl --show`);
+- every job logs the node, the load average and `squeue -w <node>` (our jobs as `self`, others as `other`, no user or job names) at the start and the end, plus the CPUs it really got (`NumCPUs`, usable CPU list, `numactl --show`);
 - every run logs `numastat -p` of the program shortly before it ends (where its memory was placed);
 - build, E1, E2 and STREAM are pinned to node haskell (`--nodelist`), so the `-march=native` build and all timed runs use the same CPU; E2 and STREAM also ask for one socket (`--sockets-per-node=1`), so their 32 cores stay in one NUMA domain (remove that line if jobs stay pending);
 - E2 and STREAM print each thread's pinning (`OMP_DISPLAY_AFFINITY`).

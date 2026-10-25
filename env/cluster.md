@@ -60,3 +60,8 @@ A small virtual machine: 4 vCPUs ("Common KVM processor", no AVX), 32 GB. It is 
 
 See `env/modules.txt`. Chosen toolchain: GCC 13.2.0 (newest GCC on the cluster) with the OpenMPI built with it.
 There is no LIKWID module; PAPI (`PAPI/7.1.0-GCCcore-13.2.0`) is available for hardware counters.
+
+**Note for the MPI phase: two different MPIs.** Without any module loaded, the compute node already has an `mpirun` from Open MPI **5.0.7** in the system path (seen in the environment snapshots of our jobs). Our chosen module is **OpenMPI/4.1.6-GCC-13.2.0**. A program must be built and started with the same MPI, otherwise it fails at start-up or behaves oddly. So:
+- `slurm/build.sbatch` must `module load OpenMPI/4.1.6-GCC-13.2.0` before the MPI target is built (today it only loads GCC, because there is no MPI target yet);
+- `slurm/hybrid.sbatch` loads the same module before `srun` (it does);
+- both should log `which mpicc mpirun` and `mpirun --version`, and we check that they point into the module, not to the system copy.
