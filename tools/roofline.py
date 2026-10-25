@@ -1,58 +1,64 @@
 """Upper bound on cell updates per second from the memory bandwidth (roofline).
 
 Usage:
-    python tools/roofline.py 100          # bandwidth in GB/s, e.g. bw_gbs from build/stream
+    python tools/roofline.py 66.8              # bandwidth in GB/s, bw_gbs from build/stream
+    python tools/roofline.py 66.8 --bytes 7    # mark another model as the main one
 
 If the kernel is limited by memory bandwidth, it cannot update more cells per
-second than bandwidth / bytes moved per cell update.
+second than bandwidth / bytes moved per cell update. The script prints the bound
+for all three byte counts and marks the chosen one (default 6).
 
-Why 10 bytes per cell update (src/sim.c, sim_step):
-    read   1 B  state byte of the cell (old grid)
-    read   4 B  fuel (float)
-    read   4 B  elevation (float)
-    write  1 B  state byte of the cell (new grid)
-    ---------
-          10 B  (9 B read + 1 B written)
-The eight neighbour state bytes are not counted: they sit in the rows just
-above and below, which are still in cache from the previous rows.
+Bytes per cell update, counted in src/sim.c (sim_step). Per cell the code reads its
+state byte (uint8_t) and, for an unburnt cell, its fuel (float, 4 B); only when a
+neighbour is burning does it also read its elevation (float, 4 B). It writes one
+state byte. The eight neighbour state bytes (and neighbour elevations) sit in the
+rows just above and below, which are still in cache from the previous rows.
 
-Write-allocate is left out on both sides. Before a byte is written, most CPUs
-first read its cache line from memory, so a write really costs a read as well.
-STREAM does not count that read: its bw_gbs is 3 x 8 bytes per triad element
-(2 reads + 1 write) divided by the time. To divide like by like, the cell
-update is counted the same way, 9 B read + 1 B written, without the extra byte.
-(This keeps the same counting rule, not the exact hardware traffic: the hidden
-read is 1/4 of the triad's real traffic but only 1/11 of ours, so the true
-bound is somewhat higher than this one. Try --bytes 8.25, i.e. 11 B against
-bw_gbs x 4/3, for that case.)
+    6 B  (default) an unburnt cell far from any fire: read state 1 + fuel 4, write 1.
+         This is about 98 % of all updates in our runs. Counted like STREAM, without
+         write-allocate, and compared with bw_gbs directly.
+    7 B  the same with write-allocate: before the new state byte is written, the CPU
+         reads its cache line, so the write costs 1 B more. STREAM's bw_gbs does not
+         count that extra read either (3 x 8 B per triad element, but 4 x 8 B really
+         move), so for a like-for-like bound the 7 B are compared with STREAM's real
+         traffic, bw_gbs x 4/3.
+   10 B  the older "every array is streamed" model: state 1 + fuel 4 + elevation 4,
+         write 1, i.e. as if every cell were next to the fire (true for well under
+         1 % of the cells). Measured runs exceed this bound, so it is too pessimistic.
 
-10 B is the "every array is streamed" estimate. In the code, elevation is only
-read for a cell that has a burning neighbour, and fuel only for unburnt cells,
-so far from the fire fewer bytes move (about 6 B, or 2 B for burnt cells). The
-real bound can therefore be higher; --bytes shows that case.
+Burning and burnt cells only read and write their state byte (2 B, 3 B with
+write-allocate), so a run with a large burnt area moves even less.
 """
 import argparse
 
-BYTES_PER_UPDATE = 10
+# bytes per update -> (description, factor applied to bw_gbs)
+MODELS = {
+    6: ("far from the fire, no write-allocate (STREAM's counting)", 1.0),
+    7: ("far from the fire, with write-allocate (vs STREAM real traffic = bw x 4/3)", 4.0 / 3.0),
+    10: ("every array streamed (old model, too pessimistic)", 1.0),
+}
 
 
-def max_updates_per_s(bw_gbs, bytes_per_update=BYTES_PER_UPDATE):
+def max_updates_per_s(bw_gbs, bytes_per_update):
     """Bandwidth in GB/s (1 GB = 1e9 bytes, as STREAM reports it) -> cell updates per second."""
-    return bw_gbs * 1e9 / bytes_per_update
+    _, factor = MODELS[bytes_per_update]
+    return bw_gbs * factor * 1e9 / bytes_per_update
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("bw_gbs", type=float, help="memory bandwidth in GB/s (bw_gbs from build/stream)")
-    ap.add_argument("--bytes", type=float, default=BYTES_PER_UPDATE,
-                    help=f"bytes moved per cell update (default {BYTES_PER_UPDATE})")
+    ap.add_argument("--bytes", type=int, choices=sorted(MODELS), default=6,
+                    help="byte model to mark as the main bound (default 6)")
     args = ap.parse_args()
-    if args.bw_gbs <= 0 or args.bytes <= 0:
-        ap.error("bandwidth and bytes must be positive")
+    if args.bw_gbs <= 0:
+        ap.error("bandwidth must be positive")
 
-    rate = max_updates_per_s(args.bw_gbs, args.bytes)
-    print(f"bandwidth {args.bw_gbs:g} GB/s, {args.bytes:g} bytes per cell update")
-    print(f"max cell updates per second: {rate:.3e} ({rate / 1e6:,.0f} MCUPS)")
+    print(f"STREAM bandwidth {args.bw_gbs:g} GB/s")
+    for b, (text, _) in MODELS.items():
+        rate = max_updates_per_s(args.bw_gbs, b)
+        mark = "  <- chosen" if b == args.bytes else ""
+        print(f"{b:>3} B per update: max {rate:.3e} cell updates/s ({rate / 1e6:>7,.0f} MCUPS)  {text}{mark}")
 
 
 if __name__ == "__main__":
