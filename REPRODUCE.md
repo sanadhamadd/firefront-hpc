@@ -30,9 +30,19 @@ The MPI and GPU builds will be added with their sources.
 
 ## 4. Run an experiment
 
-Job scripts are in `slurm/`. Parameters are passed as environment variables, for example
+First, find out what the cluster has (safe on the login node; the job looks at a compute node):
 
-    sbatch --export=ALL,NX=8192,STEPS=500 slurm/omp.sbatch
+    bash tools/cluster_info.sh > env/cluster_info_login.txt
+    sbatch slurm/cluster_info_node.sbatch
+
+Job scripts are in `slurm/`. They build nothing, so run `make`, `make omp` and `make stream` on the login node first, then submit from the repository root. Each job is one repetition (`REP`), at most 10 minutes:
+
+    # E1 baseline: serial, 8192², 400 steps, 16 ignitions
+    for rep in 1 2 3; do sbatch --export=ALL,REP=$rep slurm/e1_baseline.sbatch; done
+    # E2, OpenMP part: 1 to 32 threads
+    for t in 1 2 4 8 16 32; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch; done; done
+    # STREAM triad, memory bandwidth for the roofline
+    for t in 1 2 4 8 16 32; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/stream.sbatch; done; done
 
 ## 5. Collect results and make figures
 

@@ -84,7 +84,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 
 ## 4. Experiments (planned)
 
-Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² (50 m), **L** = 8192² (25 m). 400 steps per run, one repetition per job, median of 3 (5 for the optimization). *To do:* the current templates in `slurm/` still default to 500–1000 steps, loop 5 repetitions per job and ask for 15 min; they will be changed to match this.
+Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² (50 m), **L** = 8192² (25 m). 400 steps per run, one repetition per job, median of 3 (5 for the optimization). Job scripts for E1 (`slurm/e1_baseline.sbatch`), the OpenMP part of E2 (`slurm/e2_omp_threads.sbatch`) and STREAM (`slurm/stream.sbatch`) are ready; the others follow with their code.
 
 | # | Experiment | Configurations |
 |---|---|---|
@@ -176,7 +176,8 @@ flowchart LR
 - [x] Serial baseline in C, with tests
 - [x] OpenMP code, same checksum as serial locally
 - [x] Slurm templates and environment capture script (MPI and GPU templates wait for their binaries)
-- [ ] Cluster check: modules, cores per node, GPU (`env/modules.txt`)
+- [ ] Cluster check: modules, cores per node, GPU (`env/modules.txt`); scripts ready: `tools/cluster_info.sh`, `slurm/cluster_info_node.sbatch`
+- [x] Slurm scripts: 10 min, one repetition per job; E1, E2 (OpenMP) and STREAM jobs
 - [x] `--ignitions N` option
 - [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)
 - [x] STREAM triad benchmark (`src/bench/stream.c`, `make stream`) and roofline bound (`tools/roofline.py`)
@@ -219,7 +220,7 @@ Nobody starts a phase until the previous tag passes the checksum test. Phase 3 n
 ### Conventions
 
 - **Results:** every run prints one `RESULT key=value` line. New fields go at the end, so old logs still parse.
-- **Slurm:** parameters via `sbatch --export=ALL,NX=…`; logs to `results/raw/<name>_%j.out` with an environment snapshot; jobs ≤ 10 min (the current templates still ask for 15 min, to do).
+- **Slurm:** parameters via `sbatch --export=ALL,NX=…`; logs to `results/raw/<name>_%j.out` with an environment snapshot; one repetition per job (`REP`), jobs ≤ 10 min, scripts build nothing (run `make` on the login node first).
 - **Reproducibility:** fixed seeds, module versions and flags in `env/`, commit hash in every `RESULT` line.
 
 ## Team

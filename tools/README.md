@@ -5,6 +5,7 @@
 | `prototype/fire_prototype.py` | NumPy version of the fire rules, used to check how the model behaves | works |
 | `prototype/imbalance_demo.py` | counts how much work each block of a 4x4 or 16-strip split would get | works |
 | `capture_env.sh` | environment snapshot for each batch of runs | works |
+| `cluster_info.sh` | what the cluster has: partitions, CPU, NUMA, modules, MPI plugins, GPUs (safe on the login node) | works, not yet run on the cluster |
 | `parse_logs.py` | turn the RESULT lines of the `.out` logs in a folder into one CSV (unknown keys get their own column) | works |
 | `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs cores (median of repetitions, min/max error bars) | works |
 | `roofline.py` | max cell updates per second from a bandwidth in GB/s, at 10 bytes per update, counted like STREAM without write-allocate (`--bytes` to change) | works |
