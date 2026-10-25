@@ -22,6 +22,7 @@ For the Python tools:
     make            # serial version, build/firefront_serial
     make test       # checks, including OpenMP vs serial checksum (compiler from OMP_CC, default gcc)
     make omp        # OpenMP version, build/firefront_omp
+    make stream     # STREAM triad, build/stream (memory bandwidth for the roofline)
 
 `make omp` needs gcc with OpenMP: on the cluster, load a GCC module first; on a Mac, pass Homebrew's GCC, e.g. `make CC=gcc-16 omp` and `OMP_CC=gcc-16 make test`. If the compiler has no OpenMP, the OpenMP test prints `skipped` instead of failing, so check that it really ran.
 

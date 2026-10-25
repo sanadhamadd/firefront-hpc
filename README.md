@@ -99,7 +99,7 @@ Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² 
 | E9 | GPU | CUDA and OpenACC vs best 1-node CPU |
 | E10 | STREAM + output | Node memory bandwidth; cost of the PGM snapshot |
 
-**Roofline.** One cell update moves ≈ 11 bytes (read state + fuel + elevation, write state + write-allocate), so the maximum is about **memory bandwidth / 11 B** cell updates per second. If measured throughput gets close to that, the kernel is memory-bound.
+**Roofline.** One cell update reads 9 bytes (state + fuel + elevation) and writes 1 (state). STREAM's bandwidth does not count write-allocate traffic, so we leave it out here too and the maximum is about **STREAM bandwidth / 10 B** cell updates per second (`make stream` measures the bandwidth, `python tools/roofline.py <GB/s>` prints the bound). If measured throughput gets close to that, the kernel is memory-bound. 10 B is an upper estimate: elevation is only read next to the fire, so cells far from it move fewer bytes.
 
 **Hypotheses.**
 1. Memory bandwidth, not arithmetic, limits thread scaling.
@@ -129,6 +129,7 @@ flowchart LR
     make                 # serial version -> build/firefront_serial
     make test            # model checks, command-line checks, OpenMP checksum vs serial
     make omp             # OpenMP version -> build/firefront_omp (needs gcc with OpenMP)
+    make stream          # STREAM triad bandwidth benchmark -> build/stream (needs OpenMP)
     make clean           # remove build/
 
 `make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. MPI and GPU targets will be added with their sources.
@@ -157,7 +158,7 @@ flowchart LR
 
 ### Repository layout
 
-    src/        C sources of the simulator; src/bench for hardware benchmarks (to do)
+    src/        C sources of the simulator; src/bench for hardware benchmarks (STREAM done, ping-pong to do)
     tests/      correctness tests
     tools/      NumPy prototype, environment capture, log parsing and plotting scripts
     slurm/      job script templates
@@ -178,7 +179,8 @@ flowchart LR
 - [ ] Cluster check: modules, cores per node, GPU (`env/modules.txt`)
 - [x] `--ignitions N` option
 - [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)
-- [ ] STREAM benchmark
+- [x] STREAM triad benchmark (`src/bench/stream.c`, `make stream`) and roofline bound (`tools/roofline.py`)
+- [ ] STREAM run on a cluster node
 - [ ] E1 baseline and OpenMP thread scaling on the cluster
 - [ ] MPI version (strips, blocks, two-phase halo)
 - [ ] Hybrid runs on 1 and 2 nodes

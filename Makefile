@@ -2,6 +2,7 @@
 #
 #   make serial     ->  build/firefront_serial
 #   make omp        ->  build/firefront_omp      (needs a compiler with OpenMP, e.g. gcc on the cluster)
+#   make stream     ->  build/stream             (STREAM triad memory bandwidth, also needs OpenMP)
 #   make test       ->  build and run the tests
 #   make clean
 
@@ -18,11 +19,12 @@ LIBS     = -lm
 CORE = src/sim.c src/params.c src/landscape.c
 HDRS = $(wildcard src/*.h)
 
-.PHONY: all serial omp test clean
+.PHONY: all serial omp stream test clean
 all: serial
 
 serial: build/firefront_serial
 omp:    build/firefront_omp
+stream: build/stream
 
 build/firefront_serial: src/main.c $(CORE) $(HDRS)
 	@mkdir -p build
@@ -31,6 +33,10 @@ build/firefront_serial: src/main.c $(CORE) $(HDRS)
 build/firefront_omp: src/main.c $(CORE) $(HDRS)
 	@mkdir -p build
 	$(CC) $(CFLAGS) -fopenmp $(DEFS) -DVARIANT=\"omp\" -o $@ src/main.c $(CORE) $(LIBS)
+
+build/stream: src/bench/stream.c src/timers.h
+	@mkdir -p build
+	$(CC) $(CFLAGS) -fopenmp $(DEFS) -o $@ src/bench/stream.c
 
 build/test_model: tests/test_model.c $(CORE) $(HDRS)
 	@mkdir -p build

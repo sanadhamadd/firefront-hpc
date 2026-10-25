@@ -7,6 +7,7 @@
 | `capture_env.sh` | environment snapshot for each batch of runs | works |
 | `parse_logs.py` | turn the RESULT lines of the `.out` logs in a folder into one CSV (unknown keys get their own column) | works |
 | `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs cores (median of repetitions, min/max error bars) | works |
+| `roofline.py` | max cell updates per second from a bandwidth in GB/s, at 10 bytes per update, counted like STREAM without write-allocate (`--bytes` to change) | works |
 | `make_landscape.py` | prepare real terrain data | to do (optional) |
 
 Run the prototype:
