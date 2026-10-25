@@ -1,0 +1,54 @@
+== node state (start) ==
+node: haskell
+time: 2026-10-25T10:17:48+01:00
+load: 5.14 4.48 4.35 4/6412 2621571
+     JOBID  PARTITION         NAME       USER ST       TIME   CPUS MIN_MEMO NODELIST(REASON)
+     24877        cpu         job1      user1  R       1:49      4     200G haskell
+     24879        cpu    firefront       self  R       0:01      8       4G haskell
+   24850+0        gpu           job2      user2  R       8:01     28      64G haskell
+     24854 interactiv         job3      user3  R    1:23:50      2       4G haskell
+== -march that gcc picks on this node ==
+  -march=                     		znver4
+  Known valid arguments for -march= option:
+rm -rf build
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"610e539\" -DVARIANT=\"serial\" -o build/firefront_serial src/main.c src/sim.c src/params.c src/landscape.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"610e539\" -DVARIANT=\"omp\" -o build/firefront_omp src/main.c src/sim.c src/params.c src/landscape.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"610e539\" -o build/stream src/bench/stream.c
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"610e539\" -Isrc -o build/test_model tests/test_model.c src/sim.c src/params.c src/landscape.c -lm
+./build/test_model
+rng
+repeatable
+burnt cells never decrease
+fire goes out
+wind pushes the fire downwind
+  reach east 39 cells, west 0 cells
+fire does not cross the firebreak
+  burnt 4499 cells, 0 of them beyond the river
+several ignitions
+  burnt with 1 ignition 14155, with 16 ignitions 38378
+
+all checks passed
+bash tests/run_all.sh
+ok:   two runs give the same checksum
+ok:   another seed changes the checksum
+ok:   RESULT line has all fields
+ok:   tiny grid is rejected
+ok:   --ignitions 0 is rejected
+ok:   --ignitions 1 gives the same checksum as before
+ok:   OpenMP (gcc) runs with 1 thread(s)
+ok:   OpenMP with 1 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 2 thread(s)
+ok:   OpenMP with 2 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 4 thread(s)
+ok:   OpenMP with 4 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 8 thread(s)
+ok:   OpenMP with 8 thread(s) gives the serial checksum
+== node state (end) ==
+node: haskell
+time: 2026-10-25T10:17:50+01:00
+load: 5.14 4.48 4.35 3/6405 2621753
+     JOBID  PARTITION         NAME       USER ST       TIME   CPUS MIN_MEMO NODELIST(REASON)
+     24877        cpu         job1      user1  R       1:51      4     200G haskell
+     24879        cpu    firefront       self  R       0:03      8       4G haskell
+   24850+0        gpu           job2      user2  R       8:03     28      64G haskell
+     24854 interactiv         job3      user3  R    1:23:52      2       4G haskell

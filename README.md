@@ -181,8 +181,9 @@ flowchart LR
 - [x] `--ignitions N` option
 - [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)
 - [x] STREAM triad benchmark (`src/bench/stream.c`, `make stream`) and roofline bound (`tools/roofline.py`)
-- [ ] STREAM run on a cluster node
-- [ ] E1 baseline and OpenMP thread scaling on the cluster
+- [x] STREAM run on a cluster node (32 cores: 68 GB/s)
+- [x] E1 baseline and OpenMP thread scaling on the cluster: serial 82 s (3.1 ns per cell update), 32 threads 3.24 s, efficiency 0.79; logs in `results/raw/`, table in `results/tables/all.csv`, figures in `results/figures/`
+- [ ] Grid size sweep at 32 threads (`slurm/size_sweep.sbatch`)
 - [ ] MPI version (strips, blocks, two-phase halo)
 - [ ] Hybrid runs on 1 and 2 nodes
 - [ ] Overlap optimization and profiling

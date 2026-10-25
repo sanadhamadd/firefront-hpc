@@ -1,0 +1,31 @@
+rep=1
+== node state (start) ==
+node: haskell
+time: 2026-10-25T10:18:19+01:00
+load: 6.74 4.93 4.50 7/6405 2622138
+     JOBID  PARTITION         NAME       USER ST       TIME   CPUS MIN_MEMO NODELIST(REASON)
+     24877        cpu         job1      user1  R       2:20      4     200G haskell
+     24880        cpu    firefront       self  R       0:02      2       2G haskell
+   24850+0        gpu           job2      user2  R       8:32     28      64G haskell
+== resources of this job ==
+cpus usable: 14,270
+physcpubind: 14 270 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=2
+TRES=cpu=1,mem=2G,node=1,billing=1
+TRES=cpu=2,mem=2G,node=1,billing=2
+command: ./build/firefront_serial --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16
+firefront serial: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 1 thread(s)
+RESULT variant=serial nx=8192 ny=8192 steps=400 seed=42 ranks=1 threads=1 t_total=82.1144 cells_per_s=3.187e+08 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=610e539 compiler=13.2.0 ignitions=16 places=none
+== numastat -p, last sample before the end of the run ==
+
+Per-node process memory usage (in MBs) for PID 2622187 ((null))
+== node state (end) ==
+node: haskell
+time: 2026-10-25T10:19:46+01:00
+load: 8.22 5.89 4.88 7/6415 2623139
+     JOBID  PARTITION         NAME       USER ST       TIME   CPUS MIN_MEMO NODELIST(REASON)
+     24877        cpu         job1      user1  R       3:47      4     200G haskell
+     24880        cpu    firefront       self  R       1:29      2       2G haskell
+   24850+0        gpu           job2      user2  R       9:59     28      64G haskell
