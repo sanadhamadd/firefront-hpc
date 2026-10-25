@@ -6,7 +6,7 @@ echo "date:      $(date -Is 2>/dev/null || date)"
 echo "host:      $(hostname)"
 echo "kernel:    $(uname -sr)"
 echo "git:       $(git rev-parse --short HEAD 2>/dev/null || echo unknown)"
-echo "git dirty: $(git status --porcelain 2>/dev/null | wc -l | tr -d ' ') changed files"
+echo "git dirty: $(git status --porcelain --untracked-files=no 2>/dev/null | wc -l | tr -d ' ') changed tracked files"
 echo
 
 echo "== slurm =="

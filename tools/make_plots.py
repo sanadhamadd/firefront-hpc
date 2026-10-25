@@ -43,7 +43,8 @@ LINESTYLES = ["-", "--", ":", "-."]
 
 
 def load(csv_path):
-    df = pd.read_csv(csv_path)
+    # identifiers stay text: a commit like 610e539 would otherwise be read as the number 610e539
+    df = pd.read_csv(csv_path, dtype={"commit": str, "checksum": str, "job_id": str})
     for col in ("ranks", "threads"):
         if col not in df:
             df[col] = 1

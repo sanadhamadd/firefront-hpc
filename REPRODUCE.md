@@ -57,6 +57,9 @@ The student QOS allows 64 CPUs per user, which is 32 physical cores, so no run u
 
 ## 5. Collect results and make figures
 
+Copy the job logs from the cluster into `results/raw/`. Logs written before the job scripts stopped recording user and job names still contain other people's names; remove them before committing (the mapping is only shown as counts, never saved):
+
+    python tools/anonymize_logs.py results/raw
     python tools/parse_logs.py results/raw > results/tables/all.csv
     python tools/make_plots.py results/tables/all.csv results/figures
 

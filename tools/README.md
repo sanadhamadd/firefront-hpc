@@ -9,6 +9,7 @@
 | `parse_logs.py` | turn the RESULT lines of the `.out` logs in a folder into one CSV (unknown keys get their own column) | works |
 | `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs physical cores (median of repetitions, min/max error bars; `places=threads` runs as a separate star) | works |
 | `roofline.py` | max cell updates per second from a bandwidth in GB/s, at 10 bytes per update, counted like STREAM without write-allocate (`--bytes` to change) | works |
+| `anonymize_logs.py` | replace user and job names in old job logs: own account -> self, others -> user1, job1 ...; the mapping is never saved | works |
 | `make_landscape.py` | prepare real terrain data | to do (optional) |
 
 Run the prototype:
