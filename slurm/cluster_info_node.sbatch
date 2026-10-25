@@ -11,8 +11,6 @@
 #SBATCH --mem=1G
 #SBATCH --time=00:02:00
 #SBATCH --partition=cpu
-#SBATCH --account=hpcclass
-#SBATCH --qos=student
 
 try() {
     if command -v "$1" >/dev/null 2>&1; then

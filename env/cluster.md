@@ -29,10 +29,27 @@ Only haskell was checked. The other node, julia, is listed with the same 512 CPU
 | Nodes | haskell, julia (both are in every partition) |
 | Partitions | `cpu` (default, max 7 days), `gpu` (max 3 days), `interactive` (max 8 h) |
 | GPUs | `gpu:rtx6000ada:2` on one node, `gpu:rtx6000bb:1` on the other |
-| Account / QOS | `hpcclass` / `student` |
-| Sharing | `OverSubscribe=FORCE:2` on all partitions: each CPU can be given to up to 2 jobs at the same time, and users cannot turn this off |
-| Preemption | `PreemptMode=REQUEUE` (no gang scheduling, so jobs that share CPUs run at the same time) |
+| Account / QOS | `hpcclass` / `student`, the defaults, so the job scripts do not set them |
+| Allocation | `SelectTypeParameters=CR_CORE_MEMORY`: whole cores and memory are handed out; a core has 2 hardware threads and Slurm counts each as a CPU |
+| Sharing | `OverSubscribe=FORCE:2` on all partitions: each core can be given to up to 2 jobs at the same time, and users cannot turn this off (`--exclusive` does not prevent it) |
+| Preemption | `PreemptType=preempt/qos`, `PreemptMode=REQUEUE` (no gang scheduling, so jobs that share cores run at the same time) |
 | MPI launch | `srun --mpi=list`: none, pmi2, cray_shasta, pmix (pmix_v5) |
+
+## Limits of the student QOS
+
+| | |
+|---|---|
+| CPUs per user | `MaxTRESPU cpu=64`: at most 64 CPUs at a time, i.e. **32 physical cores** (2 hardware threads each) |
+| Running jobs per user | `MaxJobsPU=4` |
+| Queued jobs per user | `MaxSubmitPU=8` (running + pending) |
+| Wall time | no QOS limit, so the partition limit applies (we keep every job at 10 min) |
+
+What this means for us:
+- One OpenMP job can use at most 32 cores. E2 and STREAM ask for `--cpus-per-task=64 --hint=multithread` (32 whole cores with both hardware threads) and run their whole thread series inside one job.
+- STREAM measures the memory bandwidth available to 32 cores, not to a whole 256-core node.
+- MPI runs on 2 nodes may use at most 64 CPUs **in total**, e.g. 2 nodes × 16 cores (with `--hint=nomultithread`).
+- At most 8 jobs can be queued, so a series is submitted in parts (e.g. build + E1 + E2 = 7 jobs, STREAM afterwards).
+- With 32 cores, the 8192² grid (0.67 GB) is far larger than the ~128 MB of L3 those cores reach (4 CCDs × 32 MB), so E2 runs from memory.
 
 ## Login node (rust)
 

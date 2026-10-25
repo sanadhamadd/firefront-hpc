@@ -84,12 +84,12 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 
 ## 4. Experiments (planned)
 
-Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² (50 m), **L** = 8192² (25 m). 400 steps per run, one repetition per job, median of 3 (5 for the optimization). Job scripts for E1 (`slurm/e1_baseline.sbatch`), the OpenMP part of E2 (`slurm/e2_omp_threads.sbatch`) and STREAM (`slurm/stream.sbatch`) are ready; the others follow with their code.
+Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² (50 m), **L** = 8192² (25 m). 400 steps per run, one repetition per job, median of 3 (5 for the optimization). Job scripts for E1 (`slurm/e1_baseline.sbatch`), the OpenMP part of E2 (`slurm/e2_omp_threads.sbatch`) and STREAM (`slurm/stream.sbatch`) are ready; the others follow with their code. The student QOS allows at most 64 CPUs = 32 physical cores per user at a time ([env/cluster.md](env/cluster.md)), so OpenMP runs use at most 32 cores and MPI runs at most 64 CPUs in total.
 
 | # | Experiment | Configurations |
 |---|---|---|
 | E1 | Baseline | Serial, L grid, 1 core |
-| E2 | Strong scaling | OpenMP 1, 2, 4 … 256 threads (one per physical core of a node) plus 512 (all hardware threads); MPI strips 1–32 ranks (1 node), 64 (2 nodes) |
+| E2 | Strong scaling | OpenMP 1, 2, 4, 8, 16, 32 threads on 32 physical cores, plus 64 threads on their hyper-threads (one job per repetition); MPI strips 1–32 ranks (1 node), 64 (2 nodes) |
 | E3 | Hybrid split | 32 and 64 cores as different ranks × threads |
 | E4 | Weak scaling | 1024² cells per core: 1 → 4 → 16 → 64 cores |
 | E5 | Decomposition | Strips vs blocks at 16, 32, 64 ranks |
@@ -99,7 +99,7 @@ Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² 
 | E9 | GPU | CUDA and OpenACC vs best 1-node CPU |
 | E10 | STREAM + output | Node memory bandwidth; cost of the PGM snapshot |
 
-**Roofline.** One cell update reads 9 bytes (state + fuel + elevation) and writes 1 (state). STREAM's bandwidth does not count write-allocate traffic, so we leave it out here too and the maximum is about **STREAM bandwidth / 10 B** cell updates per second (`make stream` measures the bandwidth, `python tools/roofline.py <GB/s>` prints the bound). If measured throughput gets close to that, the kernel is memory-bound. 10 B is an upper estimate: elevation is only read next to the fire, so cells far from it move fewer bytes.
+**Roofline.** One cell update reads 9 bytes (state + fuel + elevation) and writes 1 (state). STREAM's bandwidth does not count write-allocate traffic, so we leave it out here too and the maximum is about **STREAM bandwidth / 10 B** cell updates per second (`make stream` measures the bandwidth, `python tools/roofline.py <GB/s>` prints the bound). On the cluster STREAM runs on the 32 cores we may use, so it gives the bandwidth available to 32 cores, not to the whole node, which is the right bound for E2 on the same cores. If measured throughput gets close to that, the kernel is memory-bound. 10 B is an upper estimate: elevation is only read next to the fire, so cells far from it move fewer bytes.
 
 **Hypotheses.**
 1. Memory bandwidth, not arithmetic, limits thread scaling.
@@ -113,9 +113,9 @@ Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² 
 ```mermaid
 flowchart LR
     A["💻 Laptop<br/>write + test code<br/>small grids"] -->|git push<br/>branch + PR| B["GitHub<br/>firefront-hpc"]
-    B -->|git pull| C["SciTech cluster<br/>login node:<br/>make + sbatch"]
+    B -->|git pull| C["SciTech cluster<br/>login node:<br/>sbatch"]
     C -->|Slurm| D["Compute nodes<br/>timed runs"]
-    D -->|"logs in results/raw/"| C
+    D -->|"build job: make<br/>timed runs: logs in results/raw/"| C
     C -->|scp logs back,<br/>commit| A
 ```
 
@@ -177,7 +177,7 @@ flowchart LR
 - [x] OpenMP code, same checksum as serial locally
 - [x] Slurm templates and environment capture script (MPI and GPU templates wait for their binaries)
 - [x] Cluster check: 2 nodes with 2 × 128-core AMD EPYC 9755, 2 threads per core, 2 NUMA domains; modules and partitions in [env/cluster.md](env/cluster.md) and `env/modules.txt` (second node, julia, not yet checked)
-- [x] Slurm scripts: 10 min, one repetition per job; E1, E2 (OpenMP) and STREAM jobs
+- [x] Slurm scripts: 10 min, one repetition per job, build on a compute node (`slurm/build.sbatch`), node and NUMA logging; E1, E2 (OpenMP) and STREAM jobs within the student limits
 - [x] `--ignitions N` option
 - [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)
 - [x] STREAM triad benchmark (`src/bench/stream.c`, `make stream`) and roofline bound (`tools/roofline.py`)
@@ -220,7 +220,7 @@ Nobody starts a phase until the previous tag passes the checksum test. Phase 3 n
 ### Conventions
 
 - **Results:** every run prints one `RESULT key=value` line. New fields go at the end, so old logs still parse.
-- **Slurm:** parameters via `sbatch --export=ALL,NX=…`; logs to `results/raw/<name>_%j.out` with an environment snapshot; one repetition per job (`REP`), jobs ≤ 10 min, scripts build nothing (run `make` on the login node first).
+- **Slurm:** parameters via `sbatch --export=ALL,NX=…`; logs to `results/raw/<name>_%j.out` with an environment snapshot; one repetition per job (`REP`), jobs ≤ 10 min, scripts build nothing (build with `sbatch slurm/build.sbatch` on a compute node first); timed jobs run one at a time (`--dependency=singleton`).
 - **Reproducibility:** fixed seeds, module versions and flags in `env/`, commit hash in every `RESULT` line.
 
 ## Team

@@ -1,58 +1,76 @@
 #!/bin/bash
-# E2 (OpenMP part): thread scaling on one node, same problem as E1
-# (8192 x 8192, 400 steps, 16 ignitions). One repetition per job; threads come from --cpus-per-task.
+# E2 (OpenMP part): thread scaling, same problem as E1 (8192 x 8192, 400 steps, 16 ignitions).
+# One repetition per job. Each job runs the whole thread series, one run after another,
+# and every run prints its own RESULT line:
+#   1, 2, 4, 8, 16, 32 threads, one per physical core (OMP_PLACES=cores, OMP_PROC_BIND=close)
+#   64 threads, two per core on the hyper-threads of the same 32 cores (OMP_PLACES=threads)
 #
-# This script builds nothing: run "make omp" on the login node first (with the GCC module loaded).
-# A node has 2 sockets x 128 cores x 2 hardware threads (env/cluster.md). The series uses
-# powers of two up to the 256 physical cores, one thread per core (--hint=nomultithread),
-# plus one run with 512 threads on all hardware threads (--hint=multithread on the command
-# line overrides the line below; the script then places one thread per hardware thread).
-# Submit from the repository root. Whole series (10 thread counts x 3 repetitions = 30 jobs):
-#   for rep in 1 2 3; do
-#     for t in 1 2 4 8 16 32 64 128 256; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch; done
-#     sbatch --cpus-per-task=512 --hint=multithread --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch
-#   done
+# This script builds nothing: run slurm/build.sbatch first.
+# Submit from the repository root. Whole series (3 repetitions = 3 jobs):
+#   for rep in 1 2 3; do sbatch --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch; done
 #
-# Why the whole node (--exclusive): the update loop moves a lot of memory per cell,
-# so with many threads it is limited by the node's memory bandwidth. Another job on
-# the same node would use part of that bandwidth and make our times slower and
-# noisier, and the thread-scaling curve would show the other job, not our code.
-# Remove the line only if the cluster does not allow it.
-#SBATCH --job-name=ff-e2
+# Resources: the student QOS allows 64 CPUs per user, and Slurm counts every hardware
+# thread as a CPU (2 per core). --cpus-per-task=64 with --hint=multithread therefore gives
+# 32 whole cores with both of their hardware threads, exactly the limit, which the 64-thread
+# run needs. (--cpus-per-task=64 with --hint=nomultithread would mean 64 cores, i.e. 128 CPUs,
+# and stay pending over the limit.) The log prints NumCPUs and the usable CPU list to check this.
+#
+# Time: on a laptop the serial E1 problem takes 55 s. Assuming a cluster core is up to 2x
+# slower, 1 thread takes about 2 min and the whole series (1 + 1/2 + 1/4 + ... plus losses)
+# about 2.1 times that, around 4-5 min. Even if another job shares our cores and doubles
+# that, it stays under 10 min. RESULT lines of finished runs stay in the log even if the
+# job is stopped at the time limit.
+#
+# Same job name as E1, STREAM and the build: with --dependency=singleton only one of them
+# runs at a time. Other users' jobs can still share the node, so the log records them.
+#SBATCH --job-name=firefront
 #SBATCH --output=results/raw/e2_omp_threads_%j.out
+#SBATCH --partition=cpu
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=4G
+#SBATCH --cpus-per-task=64
+#SBATCH --hint=multithread
+#SBATCH --mem=2G
 #SBATCH --time=00:10:00
-#SBATCH --exclusive
-#SBATCH --hint=nomultithread
-#SBATCH --partition=cpu
-#SBATCH --account=hpcclass
-#SBATCH --qos=student
+#SBATCH --dependency=singleton
 
 NX=${NX:-8192}
 STEPS=${STEPS:-400}
 REP=${REP:-1}
 
-module purge
-module load GCC/13.2.0   # see env/modules.txt
+source slurm/job_helpers.sh
 
-export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-export OMP_PROC_BIND=close
-export OMP_PLACES=cores
-# more threads than the 256 physical cores (the 512 run): one thread per hardware thread
-if [ "$OMP_NUM_THREADS" -gt 256 ]; then export OMP_PLACES=threads; fi
+module purge
+module load GCC/13.2.0 || exit 1   # see env/modules.txt
 
 bin=./build/firefront_omp
 if [ ! -x "$bin" ]; then
-    echo "$bin is missing: run make omp on the login node first"
+    echo "$bin is missing: run slurm/build.sbatch first"
     exit 1
 fi
 
+cpus=${SLURM_CPUS_PER_TASK:-64}    # hardware threads of this job
+cores=$((cpus / 2))                # 2 hardware threads per core
+
 echo "rep=$REP"
+node_state start
+job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 
-cmd=("$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16)
-echo "command: OMP_NUM_THREADS=$OMP_NUM_THREADS ${cmd[*]}"
-"${cmd[@]}"
+# print where each thread runs, to check the pinning
+export OMP_DISPLAY_AFFINITY=true
+export OMP_AFFINITY_FORMAT="thread %n of %N on cpus %A"
+export OMP_PROC_BIND=close
+args=(--nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16)
+
+for ((t = 1; t <= cores; t *= 2)); do
+    echo "== run: $t thread(s), one per physical core =="
+    export OMP_NUM_THREADS=$t OMP_PLACES=cores
+    run_logged "$bin" "${args[@]}"
+done
+
+echo "== run: $cpus threads on the hyper-threads of the $cores cores =="
+export OMP_NUM_THREADS=$cpus OMP_PLACES=threads
+run_logged "$bin" "${args[@]}"
+
+node_state end
