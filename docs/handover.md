@@ -56,9 +56,33 @@ Problem: 8192², 400 steps (390 timed), `--ignitions 16`, seed 42. Median of 3, 
 
 The target (≥ 60 % efficiency at 32 cores) is met. Hyper-threads make it 8 % slower.
 
-**STREAM triad** (same 32 cores, 12.8 GB, GB/s): 1 → 27.0, 2 → 27.1, 4 → 47.5, 8 → 35.5, 16 → 47.4, **32 → 68.0**, 64 hyper-threads → 67.7.
+**STREAM triad** (12.8 GB, GB/s, median of 3), on the cores of each run:
 
-**Bytes per cell update, counted in `sim_step`:** a cell far from the fire reads its state byte and its fuel (4 B) and writes one state byte: **6 B** (7 B with write-allocate). A cell next to a burning one also reads its elevation (4 B): 10 B (11 B). Burning and burnt cells: 2 B (3 B). Neighbour state and elevation rows come from cache. About 98 % of the E2 cells are of the first kind, so ≈ 6 B per update: at 32 threads 8.09×10⁹ × 6 B = 48.5 GB/s, **71 % of STREAM** (62 % if write-allocate is counted on both sides). `tools/roofline.py` still defaults to the older 10-B model, which the data contradicts (it would put us at 119 % of the "maximum").
+| threads | 1 | 2 | 4 | 8 | 16 | 32 | 64 (hyper-threads) |
+|---|---|---|---|---|---|---|---|
+| first runs, cores 14–45 | 27.0 | 27.1 | 47.5 | 35.5 | 47.4 | **68.0** | 67.7 |
+| rerun, cores 0–19 and 21–32 | 27.6 | 27.6 | 27.9 | 28.2 | 47.9 | **66.8** | 66.2 |
+
+The rerun explains the odd first curve: each 8-core chiplet reaches only about **28 GB/s**. In the rerun, threads 1–8 all sit on one chiplet (cores 0–7), so the bandwidth stays flat until 16 threads use two; in the first runs, 4 threads already spanned two chiplets (cores 14–15 and 16–17). The limit of about **67 GB/s at 32 threads** is the same in both runs and still unexplained (it is not NUMA, see below).
+
+**Grid size sweep** (`slurm/size_sweep.sbatch`, commit 7c686c8, 32 threads one per core, cores 0–19 and 21–32, 400 steps, 16 ignitions; MCUPS, median of 3 with min–max):
+
+| grid | default (humidity 0.2) | `--humidity 1` (no spread) |
+|---|---|---|
+| 2048² | 8,129 (8,095–8,495) | 8,036 (7,959–8,170) |
+| 4096² | 8,179 (8,132–8,198) | 8,157 (8,107–8,237) |
+| 8192² | 7,811 (7,749–8,106) | 7,958 (7,854–8,013) |
+| 16384² | 7,988 (7,971–7,998) | 7,920 (7,788–8,003) |
+
+The default 8192² runs give the reference checksum `0xb8683c550fa95bd6`; their MCUPS are 3 % below E2 (8,088), which ran on other cores (14–45 instead of 0–32). Figure: `results/figures/mcups_vs_grid_size.png`.
+
+**Finding: the kernel is compute-bound at 32 cores in one socket.** Throughput stays flat (within about ±2.5 %) from 2048², which fits in L3, to 16384², which streams 1.6 GB per step, and a grid with 21 % burnt (cheaper) cells is no faster. This goes against hypothesis 1 of the proposal (memory bandwidth limits thread scaling). The `--humidity 1` pass reaches 71 % of the 6-B memory limit (63 % of the 7-B limit). The 0.79 efficiency at 32 cores is therefore not memory; a likely cause is a lower clock when many cores are busy (unconfirmed; `perf stat` with cycles and task-clock would show it).
+
+**First touch works:** with the fixed numastat logging, every sample of the sweep and the STREAM rerun shows all pages on NUMA node 0 (the socket of our cores) and 0 MB on node 1.
+
+**Next optimisations to try:** skip tiles with no fire nearby (most cells only copy their state), and fewer branches in the neighbour check (e.g. test a whole row of neighbours at once before computing probabilities).
+
+**Bytes per cell update, counted in `sim_step`:** a cell far from the fire reads its state byte and its fuel (4 B) and writes one state byte: **6 B** (7 B with write-allocate). A cell next to a burning one also reads its elevation (4 B): 10 B (11 B). Burning and burnt cells: 2 B (3 B). Neighbour state and elevation rows come from cache. About 98 % of the E2 cells are of the first kind, so ≈ 6 B per update: at 32 threads 8.09×10⁹ × 6 B = 48.5 GB/s, **71 % of STREAM** (62 % if write-allocate is counted on both sides). `tools/roofline.py` uses these counts: 6 B by default, and it also prints 7 B (with write-allocate, against STREAM bandwidth × 4/3) and the older 10-B model, which the data contradicts (it would put us at 119 % of the "maximum").
 
 ## What the checksum test guarantees
 
@@ -71,8 +95,9 @@ Checked so far: serial = OpenMP for 1, 2, 4, 8 threads in `make test`; on the cl
 - **Job 24885 outliers:** 6 % slower at 1 thread (92.5 s) and 7 % at 4 threads (25.6 s). The neighbour logs show nothing special; they are only taken at the start and end of a job.
 - **1-thread OpenMP is 6 % slower than serial** (87.1 vs 82.0 s), so E2 efficiencies against serial start at 0.94.
 - **Shared node:** other jobs ran on haskell during all our runs (a 28–64-CPU GPU job, small CPU jobs). Times at 32 threads were tight (±0.5 %), smaller thread counts less so.
-- **STREAM curve is not monotonic** (8 threads < 4). Likely each 8-core chiplet's link to memory (~27 GB/s), with our 32 cores spread unevenly over 5 chiplets; not yet verified (`lscpu -e=CPU,CORE,CACHE`).
-- **numastat** in the first logs only shows a header; fixed in `slurm/job_helpers.sh`, so where the memory landed is not yet known.
+- **Different cores per job:** Slurm picks the 32 cores; the first jobs got 14–45, the sweep and STREAM rerun 0–19 and 21–32. Chiplet boundaries then fall differently (see STREAM), so compare runs from the same core set.
+- **STREAM limit at 32 threads** (about 67 GB/s) is unexplained; the per-chiplet limit of about 28 GB/s alone would allow more.
+- **numastat** in the first logs (E1, E2, first STREAM) only shows a header; fixed in `slurm/job_helpers.sh` since then.
 - **Two MPIs:** the compute node has a system `mpirun` from Open MPI **5.0.7**; our module is **OpenMPI/4.1.6-GCC-13.2.0**. Build and run must use the module: load it in `build.sbatch` before the MPI target (today it only loads GCC) and in `hybrid.sbatch` before `srun` (done; it logs which `mpicc`/`mpirun` it uses).
 
 ## What the MPI version must keep compatible
