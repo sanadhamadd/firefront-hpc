@@ -23,6 +23,10 @@
 #
 # Same job name as E1, STREAM and the build: with --dependency=singleton only one of them
 # runs at a time. Other users' jobs can still share the node, so the log records them.
+# Pinned to haskell (--nodelist): the -march=native build and every timed run then use
+# the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
+# --sockets-per-node=1: 32 cores fit in one 128-core socket, so the run stays in one
+# NUMA domain (local memory only). Remove that line if jobs stay pending.
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/e2_omp_threads_%j.out
 #SBATCH --partition=cpu
@@ -33,6 +37,8 @@
 #SBATCH --mem=2G
 #SBATCH --time=00:10:00
 #SBATCH --dependency=singleton
+#SBATCH --nodelist=haskell
+#SBATCH --sockets-per-node=1
 
 NX=${NX:-8192}
 STEPS=${STEPS:-400}

@@ -49,6 +49,7 @@ What this means for us:
 - STREAM measures the memory bandwidth available to 32 cores, not to a whole 256-core node.
 - MPI runs on 2 nodes may use at most 64 CPUs **in total**, e.g. 2 nodes × 16 cores (with `--hint=nomultithread`).
 - At most 8 jobs can be queued, so a series is submitted in parts (e.g. build + E1 + E2 = 7 jobs, STREAM afterwards).
+- Build, E1, E2 and STREAM run on haskell only (`--nodelist=haskell`): same CPU for the `-march=native` build and all timed runs, and the node this file describes. E2 and STREAM also ask for one socket, so their 32 cores share one NUMA domain.
 - With 32 cores, the 8192² grid (0.67 GB) is far larger than the ~128 MB of L3 those cores reach (4 CCDs × 32 MB), so E2 runs from memory.
 
 ## Login node (rust)

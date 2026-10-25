@@ -8,6 +8,8 @@
 # One core only: we ask for what the run needs, not the whole node.
 # Same job name as E2, STREAM and the build: with --dependency=singleton only one of them
 # runs at a time, so our own jobs never share cores or memory bandwidth with each other.
+# Pinned to haskell (--nodelist): the -march=native build and every timed run then use
+# the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/e1_baseline_%j.out
 #SBATCH --partition=cpu
@@ -17,6 +19,7 @@
 #SBATCH --mem=2G
 #SBATCH --time=00:10:00
 #SBATCH --dependency=singleton
+#SBATCH --nodelist=haskell
 
 NX=${NX:-8192}
 STEPS=${STEPS:-400}

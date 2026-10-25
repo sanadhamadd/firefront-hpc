@@ -32,7 +32,7 @@ Why HPC: going from 100 m to 25 m cells gives 16× more cells, and a useful fore
 2. Experiments E1–E8 are complete and reproducible from [REPRODUCE.md](REPRODUCE.md).
 3. The main bottleneck is explained with counter or timer evidence.
 
-Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency at 64 cores on the 8192² grid.
+Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency at 32 cores on the 8192² grid. (The student QOS allows at most 64 CPUs = 32 physical cores per user, see [env/cluster.md](env/cluster.md).)
 
 ---
 
@@ -52,7 +52,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 | Randomness | SplitMix64 hash of (seed, global cell, step), so results don't depend on ranks or threads |
 | Landscape | Fuel and elevation are smooth noise generated from the **global** cell position and the seed, so each rank builds its own part without reading a file |
 | Ignitions | Default: one 3×3 patch with its corner at (nx/6, ny/2); `--ignite X,Y` puts it at another cell. `--ignitions N` with N > 1 places N patches at positions drawn from the seed with the hash RNG, in global coordinates and never on the river (16 in timing runs). N = 1 keeps the old checksums |
-| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
+| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
 
 **Checks** (`make test`): same seed → same result, burnt cells never decrease, a damp fire goes out, wind pushes the fire downwind, the fire does not cross the river, 16 ignitions burn more than 1. These are plausibility checks, not physical validation. `make test` also builds the OpenMP version and checks that 1, 2, 4 and 8 threads give the serial checksum (512×512, 100 steps, `--ignitions 16`); it prints `skipped` if the compiler has no OpenMP.
 
@@ -89,10 +89,10 @@ Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² 
 | # | Experiment | Configurations |
 |---|---|---|
 | E1 | Baseline | Serial, L grid, 1 core |
-| E2 | Strong scaling | OpenMP 1, 2, 4, 8, 16, 32 threads on 32 physical cores, plus 64 threads on their hyper-threads (one job per repetition); MPI strips 1–32 ranks (1 node), 64 (2 nodes) |
-| E3 | Hybrid split | 32 and 64 cores as different ranks × threads |
-| E4 | Weak scaling | 1024² cells per core: 1 → 4 → 16 → 64 cores |
-| E5 | Decomposition | Strips vs blocks at 16, 32, 64 ranks |
+| E2 | Strong scaling | OpenMP 1, 2, 4, 8, 16, 32 threads on 32 physical cores, plus 64 threads on their hyper-threads (one job per repetition); MPI strips 1–32 ranks, also as 2 nodes × 16 cores (64-CPU user limit = 32 cores at most) |
+| E3 | Hybrid split | 32 cores as different ranks × threads, on 1 node and on 2 nodes × 16 cores (64-CPU user limit) |
+| E4 | Weak scaling | 1024² cells per core: 1 → 4 → 16 → 32 cores (the last as 2 nodes × 16 cores, grid 8192 × 4096; 64 cores exceed the 64-CPU user limit) |
+| E5 | Decomposition | Strips vs blocks at 8, 16, 32 ranks (32 also as 2 nodes × 16 cores; 64-CPU user limit) |
 | E6 | Resolution | S, M, L at 32 cores |
 | E7 | Optimization | Blocking vs overlap (± `MPI_Test`) |
 | E8 | Profiling | `perf` on 1 and 32 ranks |

@@ -13,7 +13,7 @@ C sources of the simulator.
 | `timers.h` | wall clock | done |
 | `decomp.c`, `halo.c` | process grid and halo exchange (MPI) | to do |
 | `step_cuda.cu`, `step_acc.c` | GPU port | to do |
-| `bench/stream.c` | STREAM triad memory bandwidth (OpenMP, first touch), `make stream`, prints `RESULT variant=stream ... bw_gbs=` | done |
+| `bench/stream.c` | STREAM triad memory bandwidth (OpenMP, first touch), `make stream`, prints `RESULT variant=stream ... bw_gbs= ... places=` | done |
 | `bench/` ping-pong | MPI latency and bandwidth | to do |
 
 The grids have a border of one cell, so the same loop will work for a rank that has neighbours.

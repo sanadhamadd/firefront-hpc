@@ -3,8 +3,12 @@
 Usage:
     python tools/make_plots.py results/tables/all.csv results/figures
 
-Runs with the same variant, nx and cores (cores = ranks x threads) are one
-point: the median over the repetitions, with min and max as error bars.
+Runs with the same variant, nx and cores are one point: the median over the
+repetitions, with min and max as error bars. Cores are physical cores, taken
+from the places field of the RESULT line: ranks x threads for places=cores (one
+thread per core), ranks x threads / 2 for places=threads (two threads per core
+on its hyper-threads). Runs with places=threads are drawn as a separate star
+marker, not as part of the scaling line; their efficiency is per physical core.
 Writes four PNGs: wall time, speed-up, parallel efficiency and MCUPS, each
 against cores.
 
@@ -48,14 +52,16 @@ def load(csv_path):
         df[col] = pd.to_numeric(df.get(col), errors="coerce")
     df = df.dropna(subset=["t_total", "nx"])
     df["nx"] = df["nx"].astype(int)
-    df["cores"] = df["ranks"] * df["threads"]
+    places = df["places"] if "places" in df else pd.Series("", index=df.index)
+    df["ht"] = places.fillna("").astype(str) == "threads"   # two threads per physical core
+    df["cores"] = df["ranks"] * df["threads"] // df["ht"].map({True: 2, False: 1})
     df["mcups"] = df["cells_per_s"] / 1e6
     return df
 
 
 def summarise(df):
-    """One row per (variant, nx, cores): median, min and max of time and MCUPS."""
-    keys = ["variant", "nx", "cores"]
+    """One row per (variant, nx, cores, ht): median, min and max of time and MCUPS."""
+    keys = ["variant", "nx", "cores", "ht"]
     for key, g in df.groupby(keys):
         for col in ("ny", "steps", "ignitions"):
             if col in g and g[col].nunique() > 1:
@@ -75,8 +81,8 @@ def add_speedup(s):
     for col in ("sp_med", "sp_lo", "sp_hi"):
         s[col] = float("nan")
     for (variant, nx), g in s.groupby(["variant", "nx"]):
-        serial = s[(s.variant == "serial") & (s.nx == nx) & (s.cores == 1)]
-        own = g[g.cores == 1]
+        serial = s[(s.variant == "serial") & (s.nx == nx) & (s.cores == 1) & ~s.ht]
+        own = g[(g.cores == 1) & ~g.ht]
         if len(serial):
             t1, base = serial.t_med.iloc[0], "serial"
         elif len(own):
@@ -119,7 +125,7 @@ def new_axes(cores, ylabel):
     ax.set_xticks(cores)
     ax.set_xticklabels([str(c) for c in cores])
     ax.minorticks_off()
-    ax.set_xlabel("cores (ranks × threads)")
+    ax.set_xlabel("physical cores")
     ax.set_ylabel(ylabel)
     ax.grid(axis="y", color=GRID, linewidth=0.8)
     ax.set_axisbelow(True)
@@ -138,14 +144,24 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
         ax.plot(cores, cores, color="#B5B5B5", linewidth=1.2, linestyle="--", label="ideal", zorder=1)
     elif ideal == "one":
         ax.axhline(1.0, color="#B5B5B5", linewidth=1.2, linestyle="--", label="ideal", zorder=1)
-    handles = []
+    handles, star_handles = [], []
     if ideal:
         handles.append(Line2D([], [], color="#B5B5B5", linewidth=1.2, linestyle="--", label="ideal"))
-    for (variant, nx), g in s.groupby(["variant", "nx"]):
-        g = g.dropna(subset=[med])
+    for (variant, nx), g_all in s.groupby(["variant", "nx"]):
+        g_all = g_all.dropna(subset=[med])
+        st = styles[(variant, nx)]
+        # hyper-thread runs: a separate open star at their number of physical cores
+        h = g_all[g_all.ht]
+        if not h.empty:
+            ax.errorbar(h.cores, h[med], yerr=[h[med] - h[lo], h[hi] - h[med]], color=st["color"],
+                        marker="*", linestyle="none", markersize=12, markerfacecolor="white",
+                        markeredgewidth=1.5, capsize=3, elinewidth=1.2, zorder=4)
+            star_handles.append(Line2D([], [], color=st["color"], marker="*", linestyle="none",
+                                  markersize=12, markerfacecolor="white", markeredgewidth=1.5,
+                                  label=f"{variant}, {nx}², 2 threads per core"))
+        g = g_all[~g_all.ht]
         if g.empty:
             continue
-        st = styles[(variant, nx)]
         yerr = [g[med] - g[lo], g[hi] - g[med]]
         ax.errorbar(g.cores, g[med], yerr=yerr, color=st["color"], marker=st["marker"],
                     linestyle=st["linestyle"] if len(g) > 1 else "none",
@@ -164,6 +180,7 @@ def plot_metric(s, styles, med, lo, hi, ylabel, path, ideal=None, logy=False, yl
         ax.yaxis.set_minor_formatter(FuncFormatter(lambda v, _: ""))
     if ylim:
         ax.set_ylim(*ylim)
+    handles += star_handles   # stars after the lines in the legend
     if len(handles) >= 2:
         ax.legend(handles=handles, frameon=False, fontsize=9)
     fig.tight_layout()

@@ -23,6 +23,10 @@
 # Resources as in E2: --cpus-per-task=64 with --hint=multithread = 32 whole cores with both
 # hardware threads, the 64-CPU limit. Same job name as E1, E2 and the build: with
 # --dependency=singleton only one of them runs at a time.
+# Pinned to haskell (--nodelist): the -march=native build and every timed run then use
+# the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
+# --sockets-per-node=1: 32 cores fit in one 128-core socket, so the run stays in one
+# NUMA domain (local memory only). Remove that line if jobs stay pending.
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/stream_%j.out
 #SBATCH --partition=cpu
@@ -33,6 +37,8 @@
 #SBATCH --mem=16G
 #SBATCH --time=00:10:00
 #SBATCH --dependency=singleton
+#SBATCH --nodelist=haskell
+#SBATCH --sockets-per-node=1
 
 DOUBLES=${DOUBLES:-1.6e9}
 REP=${REP:-1}

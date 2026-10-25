@@ -14,6 +14,9 @@
 # only one job of that name runs at a time, so a build never replaces the binaries while a
 # timed job is using them. If the build or a test fails, the binaries are deleted, so later
 # timed jobs stop with "missing" instead of timing a broken build.
+#
+# Pinned to haskell (--nodelist): the -march=native build and every timed run then use
+# the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/build_%j.out
 #SBATCH --partition=cpu
@@ -23,6 +26,7 @@
 #SBATCH --mem=4G
 #SBATCH --time=00:10:00
 #SBATCH --dependency=singleton
+#SBATCH --nodelist=haskell
 
 source slurm/job_helpers.sh
 

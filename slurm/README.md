@@ -26,6 +26,7 @@ The scripts **build nothing**. Build on a compute node first, wait for the job t
 - build, E1, E2 and STREAM have the same job name and `--dependency=singleton`, so only one of them runs at a time and our own jobs never compete;
 - every job logs the node, the load average and `squeue -w <node>` at the start and the end, plus the CPUs it really got (`NumCPUs`, usable CPU list, `numactl --show`);
 - every run logs `numastat -p` of the program shortly before it ends (where its memory was placed);
+- build, E1, E2 and STREAM are pinned to node haskell (`--nodelist`), so the `-march=native` build and all timed runs use the same CPU; E2 and STREAM also ask for one socket (`--sockets-per-node=1`), so their 32 cores stay in one NUMA domain (remove that line if jobs stay pending);
 - E2 and STREAM print each thread's pinning (`OMP_DISPLAY_AFFINITY`).
 
 Each job writes its log to `results/raw/<name>_<job id>.out` and an environment snapshot to `results/raw/env_<job id>.txt` (`tools/capture_env.sh`). If the binary is missing, the job stops with a message instead of building it. All jobs run in partition `cpu` (GPU jobs in `gpu`) with the default account and QOS, and load the modules in `env/modules.txt`.

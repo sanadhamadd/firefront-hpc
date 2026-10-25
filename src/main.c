@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef _OPENMP
@@ -25,6 +26,22 @@ static void print_compiler(void)
 #else
     printf("unknown");
 #endif
+}
+
+/* OMP_PLACES of the run (cores = one thread per physical core, threads = per hardware
+   thread), "none" if it is not set or the build has no OpenMP; no spaces in the RESULT line */
+static void print_places(void)
+{
+    const char *v = NULL;
+#ifdef _OPENMP
+    v = getenv("OMP_PLACES");
+#endif
+    if (!v || !*v) {
+        printf("none");
+        return;
+    }
+    for (const char *c = v; *c; c++)
+        putchar(*c == ' ' ? '_' : *c);
 }
 
 int main(int argc, char **argv)
@@ -73,7 +90,9 @@ int main(int argc, char **argv)
            t_total, cells_per_s, sim_count_burning(sim), sim_count_burnt(sim),
            (unsigned long long)sim_checksum(sim), GIT_COMMIT);
     print_compiler();
-    printf(" ignitions=%d\n", p.ignitions);
+    printf(" ignitions=%d places=", p.ignitions);
+    print_places();
+    printf("\n");
 
     if (p.snapshot && sim_write_pgm(sim, p.snapshot) != 0)
         fprintf(stderr, "could not write %s\n", p.snapshot);

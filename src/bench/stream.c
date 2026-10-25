@@ -41,6 +41,21 @@ static void print_compiler(void)
 #endif
 }
 
+/* same as in main.c: OMP_PLACES of the run, "none" if not set */
+static void print_places(void)
+{
+    const char *v = NULL;
+#ifdef _OPENMP
+    v = getenv("OMP_PLACES");
+#endif
+    if (!v || !*v) {
+        printf("none");
+        return;
+    }
+    for (const char *c = v; *c; c++)
+        putchar(*c == ' ' ? '_' : *c);
+}
+
 int main(int argc, char **argv)
 {
     double total = 4e8;
@@ -126,6 +141,8 @@ int main(int argc, char **argv)
     printf("RESULT variant=stream n=%lld reps=%d ranks=1 threads=%d t_best=%.6f bw_gbs=%.2f commit=%s compiler=",
            n, reps, threads, best, bw_gbs, GIT_COMMIT);
     print_compiler();
+    printf(" places=");
+    print_places();
     printf("\n");
 
     free(a);

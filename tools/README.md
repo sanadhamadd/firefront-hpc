@@ -7,7 +7,7 @@
 | `capture_env.sh` | environment snapshot for each batch of runs | works |
 | `cluster_info.sh` | what the cluster has: partitions, CPU, NUMA, modules, MPI plugins, GPUs (safe on the login node) | works; output in `env/cluster_info.txt` |
 | `parse_logs.py` | turn the RESULT lines of the `.out` logs in a folder into one CSV (unknown keys get their own column) | works |
-| `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs cores (median of repetitions, min/max error bars) | works |
+| `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs physical cores (median of repetitions, min/max error bars; `places=threads` runs as a separate star) | works |
 | `roofline.py` | max cell updates per second from a bandwidth in GB/s, at 10 bytes per update, counted like STREAM without write-allocate (`--bytes` to change) | works |
 | `make_landscape.py` | prepare real terrain data | to do (optional) |
 

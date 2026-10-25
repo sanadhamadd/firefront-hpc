@@ -30,7 +30,7 @@ if [ "$a" != "$c" ]; then echo "ok:   another seed changes the checksum"; else e
 
 line=$("$bin" $args | grep '^RESULT')
 missing=""
-for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions; do
+for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places; do
     case "$line" in
         *" $field="*) ;;
         *) missing="$missing $field" ;;
