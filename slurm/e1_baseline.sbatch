@@ -13,13 +13,16 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4G
 #SBATCH --time=00:10:00
-# TODO: #SBATCH --partition=<CPU partition>, once we have the cluster info
+#SBATCH --partition=cpu
+#SBATCH --account=hpcclass
+#SBATCH --qos=student
 
 NX=${NX:-8192}
 STEPS=${STEPS:-400}
 REP=${REP:-1}
 
-# TODO: module purge; module load <GCC module>   (see env/modules.txt once filled in)
+module purge
+module load GCC/13.2.0   # see env/modules.txt
 
 bin=./build/firefront_serial
 if [ ! -x "$bin" ]; then

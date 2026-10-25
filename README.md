@@ -89,7 +89,7 @@ Grids cover the same 205 × 205 km area: **S** = 2048² (100 m), **M** = 4096² 
 | # | Experiment | Configurations |
 |---|---|---|
 | E1 | Baseline | Serial, L grid, 1 core |
-| E2 | Strong scaling | OpenMP 1–32 threads; MPI strips 1–32 ranks (1 node), 64 (2 nodes) |
+| E2 | Strong scaling | OpenMP 1, 2, 4 … 256 threads (one per physical core of a node) plus 512 (all hardware threads); MPI strips 1–32 ranks (1 node), 64 (2 nodes) |
 | E3 | Hybrid split | 32 and 64 cores as different ranks × threads |
 | E4 | Weak scaling | 1024² cells per core: 1 → 4 → 16 → 64 cores |
 | E5 | Decomposition | Strips vs blocks at 16, 32, 64 ranks |
@@ -176,7 +176,7 @@ flowchart LR
 - [x] Serial baseline in C, with tests
 - [x] OpenMP code, same checksum as serial locally
 - [x] Slurm templates and environment capture script (MPI and GPU templates wait for their binaries)
-- [ ] Cluster check: modules, cores per node, GPU (`env/modules.txt`); scripts ready: `tools/cluster_info.sh`, `slurm/cluster_info_node.sbatch`
+- [x] Cluster check: 2 nodes with 2 × 128-core AMD EPYC 9755, 2 threads per core, 2 NUMA domains; modules and partitions in [env/cluster.md](env/cluster.md) and `env/modules.txt` (second node, julia, not yet checked)
 - [x] Slurm scripts: 10 min, one repetition per job; E1, E2 (OpenMP) and STREAM jobs
 - [x] `--ignitions N` option
 - [x] Log parsing and plotting scripts (`tools/parse_logs.py`, `tools/make_plots.py`)

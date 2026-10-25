@@ -1,4 +1,15 @@
-# Modules used on the SciTech cluster.
-# Filled in once we have checked "module avail" there. Example from the course handout:
-#   OpenMPI/4.1.5-GCC-12.3.0
-# For GPU runs we still need to find out which CUDA / NVHPC module exists.
+# Modules on the SciTech cluster, from "module avail" (env/cluster_info.txt, 2026-10-25).
+# Lines without "#" are the ones the Slurm scripts load.
+
+# Compiler (C, OpenMP). Also available: GCC/12.2.0, GCC/12.3.0
+GCC/13.2.0
+
+# MPI, built with the same GCC. Also available: OpenMPI/4.1.4-GCC-12.2.0, OpenMPI/4.1.5-GCC-12.3.0
+OpenMPI/4.1.6-GCC-13.2.0
+
+# GPU: CUDA (nvcc) and NVIDIA HPC SDK (nvc, OpenACC)
+hpc-course-cuda/12.8.1
+nvhpc/25.7
+
+# Profiling: no LIKWID module exists. Hardware counters through PAPI:
+# PAPI/7.1.0-GCCcore-13.2.0

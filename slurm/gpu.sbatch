@@ -12,13 +12,17 @@
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=4G
 #SBATCH --time=00:10:00
-# TODO: check the name of the GPU partition in the cluster info
+#SBATCH --account=hpcclass
+#SBATCH --qos=student
+# The two nodes have different GPUs (rtx6000ada on one, rtx6000bb on the other, see env/cluster.md).
+# To compare runs, always ask for the same type, e.g. --gres=gpu:rtx6000ada:1.
 
 NX=${NX:-8192}
 STEPS=${STEPS:-500}
 REP=${REP:-1}
 
-# TODO: module purge; module load <CUDA or NVHPC module>   (see env/modules.txt once filled in)
+module purge
+module load hpc-course-cuda/12.8.1   # for the OpenACC version: nvhpc/25.7, see env/modules.txt
 
 bin=./build/firefront_cuda
 if [ ! -x "$bin" ]; then

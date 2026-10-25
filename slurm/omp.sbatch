@@ -3,8 +3,8 @@
 # General template; the E2 thread series is slurm/e2_omp_threads.sbatch.
 #
 # This script builds nothing: run "make omp" on the login node first (with the GCC module loaded).
-# Submit from the repository root, e.g. threads 1 to 32, 3 repetitions each:
-#   for t in 1 2 4 8 16 32; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,NX=8192,REP=$rep slurm/omp.sbatch; done; done
+# Submit from the repository root, e.g. threads 1 to 256 (one node has 256 cores), 3 repetitions each:
+#   for t in 1 2 4 8 16 32 64 128 256; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,NX=8192,REP=$rep slurm/omp.sbatch; done; done
 #SBATCH --job-name=ff-omp
 #SBATCH --output=results/raw/omp_%j.out
 #SBATCH --nodes=1
@@ -13,12 +13,16 @@
 #SBATCH --mem=8G
 #SBATCH --time=00:10:00
 #SBATCH --hint=nomultithread
+#SBATCH --partition=cpu
+#SBATCH --account=hpcclass
+#SBATCH --qos=student
 
 NX=${NX:-8192}
 STEPS=${STEPS:-500}
 REP=${REP:-1}
 
-# TODO: module purge; module load <GCC module>   (see env/modules.txt once filled in)
+module purge
+module load GCC/13.2.0   # see env/modules.txt
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export OMP_PROC_BIND=close

@@ -13,6 +13,9 @@
 #SBATCH --mem=16G
 #SBATCH --time=00:10:00
 #SBATCH --hint=nomultithread
+#SBATCH --partition=cpu
+#SBATCH --account=hpcclass
+#SBATCH --qos=student
 
 NX=${NX:-8192}
 STEPS=${STEPS:-500}
@@ -20,7 +23,8 @@ DECOMP=${DECOMP:-blocks}
 OVERLAP=${OVERLAP:-1}
 REP=${REP:-1}
 
-# TODO: module purge; module load <OpenMPI module built with GCC>   (see env/modules.txt once filled in)
+module purge
+module load OpenMPI/4.1.6-GCC-13.2.0   # also loads GCC/13.2.0, see env/modules.txt
 
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 export OMP_PROC_BIND=close

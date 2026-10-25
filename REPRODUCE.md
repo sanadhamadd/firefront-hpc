@@ -35,14 +35,22 @@ First, find out what the cluster has (safe on the login node; the job looks at a
     bash tools/cluster_info.sh > env/cluster_info_login.txt
     sbatch slurm/cluster_info_node.sbatch
 
-Job scripts are in `slurm/`. They build nothing, so run `make`, `make omp` and `make stream` on the login node first, then submit from the repository root. Each job is one repetition (`REP`), at most 10 minutes:
+The modules are in `env/modules.txt` (GCC 13.2.0; `module load GCC/13.2.0` before building). Job scripts are in `slurm/`. They build nothing, so run `make`, `make omp` and `make stream` on the login node first, then submit from the repository root. Each job is one repetition (`REP`), at most 10 minutes:
 
     # E1 baseline: serial, 8192², 400 steps, 16 ignitions
     for rep in 1 2 3; do sbatch --export=ALL,REP=$rep slurm/e1_baseline.sbatch; done
-    # E2, OpenMP part: 1 to 32 threads
-    for t in 1 2 4 8 16 32; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch; done; done
-    # STREAM triad, memory bandwidth for the roofline
-    for t in 1 2 4 8 16 32; do for rep in 1 2 3; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/stream.sbatch; done; done
+    # E2, OpenMP part: 1 to 256 threads (one per physical core), plus 512 on all hardware threads
+    for rep in 1 2 3; do
+      for t in 1 2 4 8 16 32 64 128 256; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch; done
+      sbatch --cpus-per-task=512 --hint=multithread --export=ALL,REP=$rep slurm/e2_omp_threads.sbatch
+    done
+    # STREAM triad, memory bandwidth for the roofline, same thread series
+    for rep in 1 2 3; do
+      for t in 1 2 4 8 16 32 64 128 256; do sbatch --cpus-per-task=$t --export=ALL,REP=$rep slurm/stream.sbatch; done
+      sbatch --cpus-per-task=512 --hint=multithread --export=ALL,REP=$rep slurm/stream.sbatch
+    done
+
+A node has 2 sockets × 128 cores × 2 hardware threads (see `env/cluster.md`). Up to 256 threads run one per core (`--hint=nomultithread`, `OMP_PLACES=cores`); the 512 run overrides that with `--hint=multithread` and the script switches to `OMP_PLACES=threads`.
 
 ## 5. Collect results and make figures
 
