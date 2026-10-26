@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include "decomp.h"
+#include "halo.h"
 #include "landscape.h"
 #include "rng.h"
 #include "rules.h"
@@ -12,6 +13,7 @@ struct Sim {
     Params p;              /* p.nx, p.ny are the size of the whole (global) grid */
     Rules rules;
     Decomp d;              /* this rank's block: d.nx x d.ny cells starting at d.x0, d.y0 */
+    Halo halo;             /* how the border is filled from the neighbouring ranks */
     int stride;            /* d.nx + 2, the grids have a border of one cell */
     int step;              /* steps done so far */
     uint8_t *old_state;
@@ -102,6 +104,7 @@ Sim *sim_create(const Params *p)
     s->stride = s->d.nx + 2;
     s->step = 0;
     rules_init(&s->rules, p);
+    halo_init(&s->halo, &s->d);
 
     size_t n = grid_cells(&s->d);
     s->old_state = calloc(n, 1);
@@ -137,16 +140,22 @@ void sim_free(Sim *s)
     free(s->new_state);
     free(s->fuel);
     free(s->elev);
+    halo_free(&s->halo);
     decomp_free(&s->d);
     free(s);
 }
 
-void sim_step(Sim *s)
+/*
+ * Update the own cells in rows r0..r1 and columns c0..c1 (local, 1 = first own cell)
+ * from old_state into new_state. The rows are shared among the OpenMP threads.
+ * sim_step calls it once for the whole block; an overlapped version can call it
+ * first for the inner cells and, after the halo has arrived, for the boundary ring.
+ */
+static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
 {
     const Params *p = &s->p;
     const Rules *rules = &s->rules;
     const int stride = s->stride;
-    const int nx = s->d.nx, ny = s->d.ny;
     const int B = rules->burn_steps;
     const uint8_t *old = s->old_state;
     uint8_t *new_ = s->new_state;
@@ -155,14 +164,11 @@ void sim_step(Sim *s)
     for (int d = 0; d < 8; d++)
         offset[d] = NB_DR[d] * stride + NB_DC[d];
 
-    s->step++;
-    const uint64_t step = (uint64_t)s->step;
-
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
-    for (int r = 1; r <= ny; r++) {
-        for (int c = 1; c <= nx; c++) {
+    for (int r = r0; r <= r1; r++) {
+        for (int c = c0; c <= c1; c++) {
             int i = r * stride + c;
             uint8_t st = old[i];
 
@@ -194,6 +200,15 @@ void sim_step(Sim *s)
             }
         }
     }
+}
+
+void sim_step(Sim *s)
+{
+    /* the border of old_state must hold the neighbours' current cells */
+    halo_exchange(&s->halo, &s->d, s->old_state);
+
+    s->step++;
+    update_block(s, 1, s->d.ny, 1, s->d.nx, (uint64_t)s->step);
 
     uint8_t *tmp = s->old_state;
     s->old_state = s->new_state;
