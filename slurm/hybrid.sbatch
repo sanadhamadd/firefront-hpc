@@ -1,14 +1,19 @@
 #!/bin/bash
-# MPI + OpenMP, one repetition per job. Ranks x threads = cores used.
-# Not usable yet: build/firefront_mpi and its --decomp / --overlap options do not exist (phase 2).
+# MPI + OpenMP (E3 hybrid split), one repetition per job. Ranks x threads = cores used.
+# Same problem as E1/E2: 8192 x 8192, 400 steps, 16 ignitions, seed 42.
 #
-# This script builds nothing: build the MPI version with a job like slurm/build.sbatch, once it exists.
+# This script builds nothing: run slurm/build.sbatch first (it builds build/firefront_mpi),
+# and slurm/mpi_check.sbatch once to find a working LAUNCH.
+# --overlap 1 does not exist yet (phase 3); OVERLAP stays 0 until then.
 # Limit: the student QOS allows 64 CPUs per user in total, i.e. 32 cores (2 hardware threads
 # each), e.g. 2 nodes x 16 cores. With --hint=nomultithread each CPU of --cpus-per-task is a
 # whole core, so the default below is 2 nodes x 4 ranks x 4 cores = 32 cores.
 # Submit from the repository root, e.g. 3 repetitions:
-#   for rep in 1 2 3; do sbatch --nodes=2 --ntasks-per-node=4 --cpus-per-task=4 --export=ALL,NX=8192,DECOMP=blocks,OVERLAP=1,REP=$rep slurm/hybrid.sbatch; done
-#SBATCH --job-name=ff-hybrid
+#   for rep in 1 2 3; do sbatch --nodes=2 --ntasks-per-node=4 --cpus-per-task=4 --export=ALL,DECOMP=blocks,REP=$rep slurm/hybrid.sbatch; done
+# One node, 8 ranks x 4 threads:
+#   sbatch --nodes=1 --ntasks-per-node=8 --cpus-per-task=4 --nodelist=haskell --export=ALL,DECOMP=strips,REP=1 slurm/hybrid.sbatch
+# Same job name and singleton dependency as the other timed jobs: one at a time.
+#SBATCH --job-name=firefront
 #SBATCH --output=results/raw/hybrid_%j.out
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=4
@@ -17,12 +22,16 @@
 #SBATCH --time=00:10:00
 #SBATCH --hint=nomultithread
 #SBATCH --partition=cpu
+#SBATCH --dependency=singleton
+#SBATCH --nodelist=haskell,julia
 
 NX=${NX:-8192}
-STEPS=${STEPS:-500}
+STEPS=${STEPS:-400}
 DECOMP=${DECOMP:-blocks}
-OVERLAP=${OVERLAP:-1}
+OVERLAP=${OVERLAP:-0}
 REP=${REP:-1}
+LAUNCH=${LAUNCH:-srun --cpu-bind=cores}
+REFERENCE=0xb8683c550fa95bd6     # serial checksum of the E1 problem
 
 source slurm/job_helpers.sh
 
@@ -48,9 +57,15 @@ node_state start
 job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 
-cmd=(srun --cpu-bind=cores "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42
-     --decomp "$DECOMP" --overlap "$OVERLAP")
-echo "command: ${cmd[*]}"
-"${cmd[@]}"
+echo "decomp=$DECOMP ranks=$SLURM_NTASKS threads=$OMP_NUM_THREADS nodes=$SLURM_JOB_NUM_NODES nodelist=$SLURM_JOB_NODELIST"
+out=$(run_logged $LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
+      --decomp "$DECOMP" --overlap "$OVERLAP")
+status=$?
+echo "$out"
+if [ "$NX" = 8192 ] && [ "$STEPS" = 400 ]; then
+    got=$(echo "$out" | grep '^RESULT' | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/')
+    if [ "$got" = "$REFERENCE" ]; then echo "checksum ok"; else echo "CHECKSUM MISMATCH: $got, serial $REFERENCE"; fi
+fi
 
 node_state end
+exit $status

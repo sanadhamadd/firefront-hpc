@@ -23,16 +23,18 @@ For the Python tools:
     make test       # checks, including OpenMP vs serial checksum (compiler from OMP_CC, default gcc)
     make omp        # OpenMP version, build/firefront_omp
     make stream     # STREAM triad, build/stream (memory bandwidth for the roofline)
+    make mpi        # MPI + OpenMP version, build/firefront_mpi
+    make test-mpi   # MPI checks on 1-8 ranks (split, halo, checksum vs serial, snapshot)
 
 On the cluster, build on a compute node, not on the login node (a small virtual machine without AVX, so `-march=native` there would target the wrong CPU):
 
-    sbatch slurm/build.sbatch      # make clean, make, make omp, make stream, OMP_CC=gcc make test
+    sbatch slurm/build.sbatch      # make clean, make, make omp, make stream, OMP_CC=gcc make test, make mpi, make test-mpi
 
 Wait for it to finish and check `results/raw/build_<job id>.out`: it must end with `all checks passed`, and the OpenMP lines must say `ok`, not `skipped`. The log also shows which `-march` gcc picked on the node.
 
 `make omp` needs gcc with OpenMP: on the cluster `module load GCC/13.2.0` (the build job does this); on a Mac, pass Homebrew's GCC, e.g. `make CC=gcc-16 omp` and `OMP_CC=gcc-16 make test`. If the compiler has no OpenMP, the OpenMP test prints `skipped` instead of failing, so check that it really ran.
 
-The MPI and GPU builds will be added with their sources.
+The build job loads `OpenMPI/4.1.6-GCC-13.2.0` and prints which `mpicc` and `mpirun` it uses; both must come from that module, not from the node's own Open MPI 5.0.7. The MPI lines of the build log must end with `all MPI checks passed`. The GPU build will be added with its source.
 
 ## 4. Run an experiment
 
@@ -54,6 +56,20 @@ The modules are in `env/modules.txt`, the cluster and its limits in `env/cluster
     for rep in 1 2 3; do sbatch --export=ALL,REP=$rep slurm/stream.sbatch; done
 
 The student QOS allows 64 CPUs per user, which is 32 physical cores, so no run uses more than 32 cores (MPI on 2 nodes: at most 2 × 16 cores). E2 and STREAM ask for exactly that (`--cpus-per-task=64 --hint=multithread`) on one socket (`--sockets-per-node=1`). Build, E1, E2 and STREAM all run on node haskell (`--nodelist=haskell`), so the `-march=native` build and every timed run use the same CPU. Each RESULT line ends with `places=cores` or `places=threads`; `make_plots.py` counts physical cores from it and draws the 64-thread hyper-thread run as a separate star. Build, E1, E2 and STREAM share one job name and use `--dependency=singleton`, so they run one after another in the order submitted and never share cores with each other; other users' jobs still can (`OverSubscribe=FORCE:2`), so every log records the node, the load and `squeue -w <node>` at the start and the end, and `numastat -p` of each run. E2 takes about 4–5 minutes per job (estimate from the laptop E1 time, assuming a cluster core up to 2× slower).
+
+### MPI (E5 and the MPI part of E2)
+
+Once, after the build: which way of starting MPI works (srun with which PMI plugin, or mpirun)? The second line also checks that node julia can run the binary built on haskell:
+
+    sbatch slurm/mpi_check.sbatch
+    sbatch --nodes=2 --ntasks-per-node=2 --nodelist=haskell,julia slurm/mpi_check.sbatch
+
+The end of `results/raw/mpi_check_<id>.out` lists each launcher as `works` or `fails`. Use the first one that works as `LAUNCH` (the default is `srun --cpu-bind=cores`). Then submit the series: strips and blocks with 1, 2, 4, 8, 16 and 32 ranks on haskell, and 8, 16 and 32 ranks split over haskell and julia, one rank per core, 3 repetitions (51 jobs). The script waits whenever 8 of your jobs are queued, so leave it running (for example in `tmux`):
+
+    DRY_RUN=1 bash slurm/submit_e5.sh                      # print the sbatch commands only
+    LAUNCH="srun --cpu-bind=cores" bash slurm/submit_e5.sh
+
+Every E5 log must say `checksum ok`: the run reproduced the serial E1 result `0xb8683c550fa95bd6`.
 
 ## 5. Collect results and make figures
 

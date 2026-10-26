@@ -52,7 +52,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 | Randomness | SplitMix64 hash of (seed, global cell, step), so results don't depend on ranks or threads |
 | Landscape | Fuel and elevation are smooth noise generated from the **global** cell position and the seed, so each rank builds its own part without reading a file |
 | Ignitions | Default: one 3×3 patch with its corner at (nx/6, ny/2); `--ignite X,Y` puts it at another cell. `--ignitions N` with N > 1 places N patches at positions drawn from the seed with the hash RNG, in global coordinates and never on the river (16 in timing runs). N = 1 keeps the old checksums |
-| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity`; with more than 20 steps the first 10 are an untimed warm-up; optional PGM snapshot (`--snapshot FILE`) |
+| Output | One `RESULT key=value` line per run with `variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity`, then the MPI fields `nodes decomp px py overlap t_halo t_compute t_reduce imbalance` (see [src/README.md](src/README.md)); with more than 20 steps the first 10 are an untimed warm-up; `t_total` is the slowest rank; optional PGM snapshot (`--snapshot FILE`, put together on rank 0 with MPI) |
 
 **Checks** (`make test`): same seed → same result, burnt cells never decrease, a damp fire goes out, wind pushes the fire downwind, the fire does not cross the river, 16 ignitions burn more than 1. These are plausibility checks, not physical validation. `make test` also builds the OpenMP version and checks that 1, 2, 4 and 8 threads give the serial checksum (512×512, 100 steps, `--ignitions 16`); it prints `skipped` if the compiler has no OpenMP.
 
@@ -64,7 +64,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 
 ![Software structure](docs/img/software_structure.png)
 
-**MPI (to do).** The grid is split with `MPI_Cart_create`; blocking `MPI_Sendrecv` halo exchange first. We compare two decompositions:
+**MPI (code ready, gives the serial checksum locally; cluster runs to do).** The grid is split with `MPI_Cart_create` (`src/decomp.c`); blocking `MPI_Sendrecv` halo exchange (`src/halo.c`). Every rank builds its own block of the landscape, uses global cell numbers for the random draws and keeps the elevation of its border cells, so any split gives exactly the serial result. We compare two decompositions (`--decomp strips|blocks`):
 
 ![Halo exchange: strips vs blocks](docs/img/halo_exchange.png)
 
@@ -130,12 +130,15 @@ flowchart LR
     make test            # model checks, command-line checks, OpenMP checksum vs serial
     make omp             # OpenMP version -> build/firefront_omp (needs gcc with OpenMP)
     make stream          # STREAM triad bandwidth benchmark -> build/stream (needs OpenMP)
+    make mpi             # MPI + OpenMP version -> build/firefront_mpi (needs mpicc)
+    make test-mpi        # MPI checks on 1-8 ranks: split, halo, checksum vs serial, snapshot
     make clean           # remove build/
 
-`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. MPI and GPU targets will be added with their sources.
+`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. `make mpi` uses `mpicc` with `-fopenmp`; on the cluster load `OpenMPI/4.1.6-GCC-13.2.0`. On a Mac: `brew install open-mpi`, then `OMPI_CC=gcc-16 make test-mpi` (with OpenMP) or `make test-mpi MPI_OMP=` (without). The GPU target will be added with its source.
 
     ./build/firefront_serial --nx 1024 --ny 1024 --steps 200 --snapshot fire.pgm
     OMP_NUM_THREADS=4 ./build/firefront_omp --nx 1024 --ny 1024 --steps 200
+    OMP_NUM_THREADS=1 mpirun -np 4 ./build/firefront_mpi --nx 1024 --ny 1024 --steps 200 --decomp strips
 
 | Option | Default |
 |---|---|
@@ -153,6 +156,8 @@ flowchart LR
 | `--river 0\|1` | 1 (firebreak on) |
 | `--report-every N` | 0 (no progress lines) |
 | `--snapshot FILE` | none (grey-scale PGM of the final state) |
+| `--decomp strips\|blocks` | blocks (MPI only: how the grid is split over the ranks) |
+| `--overlap 0\|1` | 0 (1 = overlap halo exchange and computation, not implemented yet) |
 
 `--help` prints this list. Each run prints one `RESULT` line; the `checksum` field must be the same for every version with the same options. See [REPRODUCE.md](REPRODUCE.md) for the cluster experiments.
 
@@ -184,7 +189,8 @@ flowchart LR
 - [x] STREAM run on a cluster node (32 cores: 68 GB/s)
 - [x] E1 baseline and OpenMP thread scaling on the cluster: serial 82 s (3.1 ns per cell update), 32 threads 3.24 s, efficiency 0.79; logs in `results/raw/`, table in `results/tables/all.csv`, figures in `results/figures/`
 - [ ] Grid size sweep at 32 threads (`slurm/size_sweep.sbatch`)
-- [ ] MPI version (strips, blocks, two-phase halo)
+- [x] MPI version (strips, blocks, two-phase halo, per-rank timers): same checksum as serial on 1–8 ranks locally, including the E1 problem (`0xb8683c550fa95bd6`) on 8 ranks; job scripts `slurm/mpi_check.sbatch`, `slurm/e5_decomp.sbatch`, `slurm/submit_e5.sh`
+- [ ] MPI on the cluster: launcher check, E5 (strips vs blocks) and MPI strong scaling
 - [ ] Hybrid runs on 1 and 2 nodes
 - [ ] Overlap optimization and profiling
 - [ ] GPU port (CUDA + OpenACC)
