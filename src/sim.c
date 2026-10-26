@@ -340,6 +340,13 @@ int sim_write_pgm(const Sim *s, const char *path)
             blocks = malloc((size_t)s->p.nx * (size_t)s->p.ny);
             img = malloc((size_t)s->p.nx * (size_t)s->p.ny);
         }
+        int have_memory = (d->rank != 0) || (boxes && counts && displs && blocks && img);
+        MPI_Bcast(&have_memory, 1, MPI_INT, 0, d->comm);
+        if (!have_memory) {
+            free(boxes); free(counts); free(displs); free(blocks); free(img);
+            free(mine);
+            return 1;
+        }
         MPI_Gather(box, 4, MPI_INT, boxes, 4, MPI_INT, 0, d->comm);
         if (d->rank == 0) {
             int offset = 0;

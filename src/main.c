@@ -142,6 +142,8 @@ int main(int argc, char **argv)
     MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &ranks);
+    if (provided < MPI_THREAD_FUNNELED && rank == 0)
+        fprintf(stderr, "warning: MPI gives thread level %d, lower than MPI_THREAD_FUNNELED\n", provided);
 #endif
 
     Params p;

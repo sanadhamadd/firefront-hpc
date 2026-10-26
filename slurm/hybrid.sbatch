@@ -58,7 +58,10 @@ job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 
 echo "decomp=$DECOMP ranks=$SLURM_NTASKS threads=$OMP_NUM_THREADS nodes=$SLURM_JOB_NUM_NODES nodelist=$SLURM_JOB_NODELIST"
-out=$(run_logged $LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
+# run directly, not with run_logged: numastat of srun or mpirun would describe the
+# launcher, not the MPI ranks
+echo "command: $LAUNCH $bin ..."
+out=$($LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
       --decomp "$DECOMP" --overlap "$OVERLAP")
 status=$?
 echo "$out"

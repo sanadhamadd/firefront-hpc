@@ -21,7 +21,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --hint=nomultithread
-#SBATCH --mem=4G
+#SBATCH --mem=8G
 #SBATCH --time=00:10:00
 #SBATCH --dependency=singleton
 #SBATCH --nodelist=haskell
@@ -53,7 +53,10 @@ job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 
 export OMP_NUM_THREADS=1
-out=$(run_logged $LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
+# run directly, not with run_logged: numastat of srun or mpirun would describe the
+# launcher, not the MPI ranks
+echo "command: $LAUNCH $bin ..."
+out=$($LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
       --decomp "$DECOMP" --overlap 0)
 status=$?
 echo "$out"
