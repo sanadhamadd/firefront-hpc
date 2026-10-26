@@ -54,5 +54,37 @@ want=$(build/firefront_serial $args | checksum)
 got=$(OMP_NUM_THREADS=2 $MPIRUN -np 2 build/firefront_mpi $args 2>/dev/null | checksum)
 if [ "$got" = "$want" ]; then echo "ok:   2 ranks x 2 threads gives the serial checksum"; else echo "FAIL: 2 ranks x 2 threads: $got, serial $want"; fail=1; fi
 
+# snapshot: the picture rank 0 puts together must be the same file as the serial one
+tmp=$(mktemp -d)
+args="--nx 403 --ny 301 --steps 150 --ignitions 9"
+build/firefront_serial $args --snapshot "$tmp/serial.pgm" > /dev/null
+same=1
+for np in 2 3 6; do
+    for decomp in strips blocks; do
+        $MPIRUN -np $np build/firefront_mpi $args --decomp $decomp --snapshot "$tmp/mpi.pgm" > /dev/null 2>&1
+        cmp -s "$tmp/serial.pgm" "$tmp/mpi.pgm" || { echo "FAIL: snapshot with $np ranks, $decomp differs"; same=0; fail=1; }
+    done
+done
+rm -rf "$tmp"
+[ $same -eq 1 ] && echo "ok:   snapshots from 2, 3 and 6 ranks equal the serial one"
+
+# RESULT line: real rank count and process grid, and only rank 0 prints it
+line=$($MPIRUN -np 6 build/firefront_mpi --nx 300 --ny 200 --steps 30 --decomp blocks 2>/dev/null)
+n=$(echo "$line" | grep -c '^RESULT')
+fields=""
+for key in ranks decomp px py; do
+    fields="$fields$(echo "$line" | grep '^RESULT' | tr ' ' '\n' | grep "^$key=") "
+done
+check_line="ranks=6 decomp=blocks px=3 py=2 "
+if [ "$n" = "1" ] && [ "$fields" = "$check_line" ]; then
+    echo "ok:   one RESULT line with ranks=6, blocks, 3 x 2 process grid"
+else
+    echo "FAIL: RESULT lines: $n, fields: $fields (want $check_line)"; fail=1
+fi
+
+# a bad option is reported once, not once per rank
+n=$($MPIRUN -np 4 build/firefront_mpi --decomp diagonal 2>&1 | grep -c 'must be strips or blocks')
+if [ "$n" = "1" ]; then echo "ok:   a bad option is reported once"; else echo "FAIL: bad option reported $n times"; fail=1; fi
+
 if [ $fail -eq 0 ]; then echo "all MPI checks passed"; else echo "MPI CHECKS FAILED"; fi
 exit $fail

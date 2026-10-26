@@ -2,12 +2,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "decomp.h"
 #include "halo.h"
 #include "landscape.h"
 #include "rng.h"
 #include "rules.h"
+#include "timers.h"
 
 struct Sim {
     Params p;              /* p.nx, p.ny are the size of the whole (global) grid */
@@ -16,6 +18,8 @@ struct Sim {
     Halo halo;             /* how the border is filled from the neighbouring ranks */
     int stride;            /* d.nx + 2, the grids have a border of one cell */
     int step;              /* steps done so far */
+    double t_halo;         /* seconds in the halo exchange since the last sim_reset_times */
+    double t_compute;      /* seconds updating cells since the last sim_reset_times */
     uint8_t *old_state;
     uint8_t *new_state;
     float *fuel;
@@ -205,10 +209,16 @@ static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
 void sim_step(Sim *s)
 {
     /* the border of old_state must hold the neighbours' current cells */
+    double t0 = wall_seconds();
     halo_exchange(&s->halo, &s->d, s->old_state);
+    double t1 = wall_seconds();
 
     s->step++;
     update_block(s, 1, s->d.ny, 1, s->d.nx, (uint64_t)s->step);
+    double t2 = wall_seconds();
+
+    s->t_halo += t1 - t0;
+    s->t_compute += t2 - t1;
 
     uint8_t *tmp = s->old_state;
     s->old_state = s->new_state;
@@ -218,6 +228,24 @@ void sim_step(Sim *s)
 int sim_steps_done(const Sim *s)
 {
     return s->step;
+}
+
+void sim_reset_times(Sim *s)
+{
+    s->t_halo = 0.0;
+    s->t_compute = 0.0;
+}
+
+void sim_times(const Sim *s, double *t_halo, double *t_compute)
+{
+    *t_halo = s->t_halo;
+    *t_compute = s->t_compute;
+}
+
+void sim_rank_grid(const Sim *s, int *px, int *py)
+{
+    *px = s->d.px;
+    *py = s->d.py;
 }
 
 long long sim_count_burning(const Sim *s)
@@ -266,25 +294,79 @@ uint8_t sim_state_at(const Sim *s, int x, int y)
     return s->old_state[(ly + 1) * s->stride + (lx + 1)];
 }
 
-int sim_write_pgm(const Sim *s, const char *path)
+/* grey level of local cell i in the snapshot */
+static uint8_t grey_of(const Sim *s, int i)
 {
-    if (s->d.size > 1)
-        return 1;                               /* gathering the grid on one rank: not done yet */
+    uint8_t st = s->old_state[i];
+    if (st == STATE_BURNT)       return 25;     /* dark: burnt */
+    if (st >= 1)                 return 110;    /* medium: burning */
+    if (s->fuel[i] <= 0.0f)      return 150;    /* firebreak */
+    return 215;                                 /* light: unburnt */
+}
+
+static int write_image(const char *path, const uint8_t *img, int nx, int ny)
+{
     FILE *f = fopen(path, "wb");
     if (!f) return 1;
-    fprintf(f, "P5\n%d %d\n255\n", s->p.nx, s->p.ny);
-    for (int r = 1; r <= s->p.ny; r++) {
-        for (int c = 1; c <= s->p.nx; c++) {
-            int i = r * s->stride + c;
-            uint8_t st = s->old_state[i];
-            uint8_t grey;
-            if (st == STATE_BURNT)       grey = 25;     /* dark: burnt */
-            else if (st >= 1)            grey = 110;    /* medium: burning */
-            else if (s->fuel[i] <= 0.0f) grey = 150;    /* firebreak */
-            else                         grey = 215;    /* light: unburnt */
-            fputc(grey, f);
+    fprintf(f, "P5\n%d %d\n255\n", nx, ny);
+    size_t n = (size_t)nx * (size_t)ny;
+    int bad = (fwrite(img, 1, n, f) != n);
+    if (fclose(f) != 0) bad = 1;
+    return bad;
+}
+
+int sim_write_pgm(const Sim *s, const char *path)
+{
+    const Decomp *d = &s->d;
+    size_t mine_n = (size_t)d->nx * (size_t)d->ny;
+    uint8_t *mine = malloc(mine_n);
+    if (!mine) return 1;
+    for (int r = 1; r <= d->ny; r++)
+        for (int c = 1; c <= d->nx; c++)
+            mine[(size_t)(r - 1) * d->nx + (c - 1)] = grey_of(s, r * s->stride + c);
+
+    int bad = 0;
+#ifdef USE_MPI
+    if (d->size > 1) {
+        /* rank 0 collects every block, then copies each one to its place in the picture.
+           Meant for pictures of small and medium grids, not for timed runs. */
+        int box[4] = { d->x0, d->y0, d->nx, d->ny };
+        int *boxes = NULL, *counts = NULL, *displs = NULL;
+        uint8_t *blocks = NULL, *img = NULL;
+        if (d->rank == 0) {
+            boxes = malloc(sizeof(int) * 4 * d->size);
+            counts = malloc(sizeof(int) * d->size);
+            displs = malloc(sizeof(int) * d->size);
+            blocks = malloc((size_t)s->p.nx * (size_t)s->p.ny);
+            img = malloc((size_t)s->p.nx * (size_t)s->p.ny);
         }
+        MPI_Gather(box, 4, MPI_INT, boxes, 4, MPI_INT, 0, d->comm);
+        if (d->rank == 0) {
+            int offset = 0;
+            for (int k = 0; k < d->size; k++) {
+                counts[k] = boxes[4 * k + 2] * boxes[4 * k + 3];
+                displs[k] = offset;
+                offset += counts[k];
+            }
+        }
+        MPI_Gatherv(mine, (int)mine_n, MPI_UNSIGNED_CHAR, blocks, counts, displs,
+                    MPI_UNSIGNED_CHAR, 0, d->comm);
+        if (d->rank == 0) {
+            for (int k = 0; k < d->size; k++) {
+                int x0 = boxes[4 * k], y0 = boxes[4 * k + 1], bnx = boxes[4 * k + 2], bny = boxes[4 * k + 3];
+                const uint8_t *b = blocks + displs[k];
+                for (int y = 0; y < bny; y++)
+                    memcpy(img + (size_t)(y0 + y) * s->p.nx + x0, b + (size_t)y * bnx, (size_t)bnx);
+            }
+            bad = write_image(path, img, s->p.nx, s->p.ny);
+            free(boxes); free(counts); free(displs); free(blocks); free(img);
+        }
+        MPI_Bcast(&bad, 1, MPI_INT, 0, d->comm);
+        free(mine);
+        return bad;
     }
-    fclose(f);
-    return 0;
+#endif
+    bad = write_image(path, mine, d->nx, d->ny);
+    free(mine);
+    return bad;
 }
