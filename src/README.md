@@ -9,7 +9,7 @@ C sources of the simulator.
 | `landscape.h/.c` | synthetic fuel and elevation, built from global cell position and seed | done |
 | `rules.h` | the cell rule tables (wind, slope, geometry) | done |
 | `rng.h` | hash based random number per cell and step | done |
-| `sim.h/.c` | grids, one time step, counts, checksum, PGM snapshot | done (serial, OpenMP pragma in place, not yet tried on the cluster) |
+| `sim.h/.c` | grids of one rank's block (the whole grid without MPI), one time step, counts and checksum summed over all ranks, PGM snapshot (one rank only for now) | done; MPI halo exchange still to add |
 | `timers.h` | wall clock | done |
 | `decomp.h/.c` | process grid (strips or blocks), each rank's block and its neighbours | done, tested with 1–8 ranks |
 | `halo.c` | halo exchange (MPI) | to do |

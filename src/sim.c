@@ -3,14 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "decomp.h"
 #include "landscape.h"
 #include "rng.h"
 #include "rules.h"
 
 struct Sim {
-    Params p;
+    Params p;              /* p.nx, p.ny are the size of the whole (global) grid */
     Rules rules;
-    int stride;            /* nx + 2, the grids have a border of one cell */
+    Decomp d;              /* this rank's block: d.nx x d.ny cells starting at d.x0, d.y0 */
+    int stride;            /* d.nx + 2, the grids have a border of one cell */
     int step;              /* steps done so far */
     uint8_t *old_state;
     uint8_t *new_state;
@@ -18,19 +20,45 @@ struct Sim {
     float *elev;
 };
 
-static size_t grid_cells(const Params *p)
+static size_t grid_cells(const Decomp *d)
 {
-    return (size_t)(p->nx + 2) * (size_t)(p->ny + 2);
+    return (size_t)(d->nx + 2) * (size_t)(d->ny + 2);
 }
 
-/* set a 3 x 3 patch to burning; x, y is its top left cell (global, 0-based) */
+/* global index of local cell (r, c), r and c counted from the border (1 = first own cell) */
+static uint64_t global_cell(const Sim *s, int r, int c)
+{
+    return (uint64_t)(s->d.y0 + r - 1) * (uint64_t)s->p.nx + (uint64_t)(s->d.x0 + c - 1);
+}
+
+/* add a value over all ranks (nothing to do without MPI) */
+static long long sum_ranks(const Sim *s, long long local)
+{
+#ifdef USE_MPI
+    long long total;
+    MPI_Allreduce(&local, &total, 1, MPI_LONG_LONG, MPI_SUM, s->d.comm);
+    return total;
+#else
+    (void)s;
+    return local;
+#endif
+}
+
+/*
+ * Set a 3 x 3 patch to burning; x, y is its top left cell (global, 0-based).
+ * Only the cells inside this rank's block are set, so a patch on a rank border
+ * ends up split over the ranks that own its cells.
+ */
 static void ignite_patch(Sim *s, int ix, int iy)
 {
     for (int dy = 0; dy < 3; dy++) {
         for (int dx = 0; dx < 3; dx++) {
             int x = ix + dx, y = iy + dy;
-            if (x < s->p.nx && y < s->p.ny)
-                s->old_state[(y + 1) * s->stride + (x + 1)] = 1;
+            if (x >= s->p.nx || y >= s->p.ny)
+                continue;
+            int lx = x - s->d.x0, ly = y - s->d.y0;
+            if (lx >= 0 && lx < s->d.nx && ly >= 0 && ly < s->d.ny)
+                s->old_state[(ly + 1) * s->stride + (lx + 1)] = 1;
         }
     }
 }
@@ -67,11 +95,15 @@ Sim *sim_create(const Params *p)
     Sim *s = calloc(1, sizeof *s);
     if (!s) return NULL;
     s->p = *p;
-    s->stride = p->nx + 2;
+    if (decomp_init(&s->d, p->nx, p->ny, p->decomp) != 0) {
+        free(s);
+        return NULL;
+    }
+    s->stride = s->d.nx + 2;
     s->step = 0;
     rules_init(&s->rules, p);
 
-    size_t n = grid_cells(p);
+    size_t n = grid_cells(&s->d);
     s->old_state = calloc(n, 1);
     s->new_state = calloc(n, 1);
     s->fuel = malloc(n * sizeof(float));
@@ -81,7 +113,7 @@ Sim *sim_create(const Params *p)
         return NULL;
     }
 
-    landscape_fill(s->fuel, s->elev, p->nx, p->ny, 0, 0, p);
+    landscape_fill(s->fuel, s->elev, s->d.nx, s->d.ny, s->d.x0, s->d.y0, p);
 
     if (p->ignitions == 1) {
         /* one fire start, at the default place or at --ignite */
@@ -105,6 +137,7 @@ void sim_free(Sim *s)
     free(s->new_state);
     free(s->fuel);
     free(s->elev);
+    decomp_free(&s->d);
     free(s);
 }
 
@@ -113,6 +146,7 @@ void sim_step(Sim *s)
     const Params *p = &s->p;
     const Rules *rules = &s->rules;
     const int stride = s->stride;
+    const int nx = s->d.nx, ny = s->d.ny;
     const int B = rules->burn_steps;
     const uint8_t *old = s->old_state;
     uint8_t *new_ = s->new_state;
@@ -127,8 +161,8 @@ void sim_step(Sim *s)
 #ifdef _OPENMP
 #pragma omp parallel for schedule(static)
 #endif
-    for (int r = 1; r <= p->ny; r++) {
-        for (int c = 1; c <= p->nx; c++) {
+    for (int r = 1; r <= ny; r++) {
+        for (int c = 1; c <= nx; c++) {
             int i = r * stride + c;
             uint8_t st = old[i];
 
@@ -153,7 +187,7 @@ void sim_step(Sim *s)
                 }
                 new_[i] = STATE_UNBURNT;
                 if (any) {
-                    uint64_t cell = (uint64_t)(r - 1) * (uint64_t)p->nx + (uint64_t)(c - 1);
+                    uint64_t cell = global_cell(s, r, c);
                     if (cell_uniform(p->seed, cell, step) < 1.0f - keep)
                         new_[i] = 1;
                 }
@@ -174,42 +208,53 @@ int sim_steps_done(const Sim *s)
 long long sim_count_burning(const Sim *s)
 {
     long long n = 0;
-    for (int r = 1; r <= s->p.ny; r++)
-        for (int c = 1; c <= s->p.nx; c++)
+    for (int r = 1; r <= s->d.ny; r++)
+        for (int c = 1; c <= s->d.nx; c++)
             if (is_burning(s->old_state[r * s->stride + c], s->rules.burn_steps))
                 n++;
-    return n;
+    return sum_ranks(s, n);
 }
 
 long long sim_count_burnt(const Sim *s)
 {
     long long n = 0;
-    for (int r = 1; r <= s->p.ny; r++)
-        for (int c = 1; c <= s->p.nx; c++)
+    for (int r = 1; r <= s->d.ny; r++)
+        for (int c = 1; c <= s->d.nx; c++)
             if (s->old_state[r * s->stride + c] == STATE_BURNT)
                 n++;
-    return n;
+    return sum_ranks(s, n);
 }
 
 uint64_t sim_checksum(const Sim *s)
 {
     uint64_t sum = 0;
-    for (int r = 1; r <= s->p.ny; r++) {
-        for (int c = 1; c <= s->p.nx; c++) {
-            uint64_t cell = (uint64_t)(r - 1) * (uint64_t)s->p.nx + (uint64_t)(c - 1);
+    for (int r = 1; r <= s->d.ny; r++) {
+        for (int c = 1; c <= s->d.nx; c++) {
+            uint64_t cell = global_cell(s, r, c);
             sum += mix64((cell << 8) | s->old_state[r * s->stride + c]);
         }
     }
+#ifdef USE_MPI
+    /* unsigned addition wraps around, so the order of the ranks does not matter */
+    uint64_t total;
+    MPI_Allreduce(&sum, &total, 1, MPI_UINT64_T, MPI_SUM, s->d.comm);
+    sum = total;
+#endif
     return sum;
 }
 
 uint8_t sim_state_at(const Sim *s, int x, int y)
 {
-    return s->old_state[(y + 1) * s->stride + (x + 1)];
+    int lx = x - s->d.x0, ly = y - s->d.y0;
+    if (lx < 0 || lx >= s->d.nx || ly < 0 || ly >= s->d.ny)
+        return STATE_UNBURNT;                   /* not on this rank */
+    return s->old_state[(ly + 1) * s->stride + (lx + 1)];
 }
 
 int sim_write_pgm(const Sim *s, const char *path)
 {
+    if (s->d.size > 1)
+        return 1;                               /* gathering the grid on one rank: not done yet */
     FILE *f = fopen(path, "wb");
     if (!f) return 1;
     fprintf(f, "P5\n%d %d\n255\n", s->p.nx, s->p.ny);
