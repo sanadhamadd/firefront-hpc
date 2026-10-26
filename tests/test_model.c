@@ -168,6 +168,57 @@ static void test_ignitions(void)
     sim_free(one); sim_free(a); sim_free(b);
 }
 
+/*
+ * Every rank builds only its own block of the landscape, plus a border of one cell.
+ * The values must be the same as in the whole grid at the same global position,
+ * including border cells that belong to a neighbouring rank (their elevation is used
+ * by the slope term). Border cells outside the whole grid must have no fuel and no height.
+ */
+static void test_landscape_blocks(void)
+{
+    printf("landscape blocks match the whole grid\n");
+    Params p = small_params();
+    p.nx = 97; p.ny = 61;                       /* the river is at column 61 */
+    int gstride = p.nx + 2;
+    size_t gcells = (size_t)gstride * (p.ny + 2);
+    float *gfuel = malloc(gcells * sizeof(float));
+    float *gelev = malloc(gcells * sizeof(float));
+    landscape_fill(gfuel, gelev, p.nx, p.ny, 0, 0, &p);
+
+    /* x0, y0, nx, ny: corners, edges, the middle, a block cutting the river, single rows */
+    int blocks[][4] = { { 0, 0, 20, 15 }, { 77, 0, 20, 15 }, { 0, 46, 20, 15 }, { 77, 46, 20, 15 },
+                        { 30, 20, 25, 10 }, { 58, 5, 8, 40 }, { 0, 30, 97, 1 }, { 40, 0, 1, 61 },
+                        { 0, 0, 97, 61 } };
+    int nblocks = (int)(sizeof blocks / sizeof blocks[0]);
+    int wrong = 0;
+    for (int b = 0; b < nblocks; b++) {
+        int x0 = blocks[b][0], y0 = blocks[b][1], nx = blocks[b][2], ny = blocks[b][3];
+        int stride = nx + 2;
+        size_t cells = (size_t)stride * (ny + 2);
+        float *fuel = malloc(cells * sizeof(float));
+        float *elev = malloc(cells * sizeof(float));
+        landscape_fill(fuel, elev, nx, ny, x0, y0, &p);
+        for (int r = 0; r < ny + 2; r++) {
+            for (int c = 0; c < nx + 2; c++) {
+                int gx = x0 + c - 1, gy = y0 + r - 1;
+                float want_fuel = 0.0f, want_elev = 0.0f;
+                if (gx >= 0 && gx < p.nx && gy >= 0 && gy < p.ny) {
+                    want_fuel = gfuel[(size_t)(gy + 1) * gstride + (gx + 1)];
+                    want_elev = gelev[(size_t)(gy + 1) * gstride + (gx + 1)];
+                }
+                if (fuel[r * stride + c] != want_fuel || elev[r * stride + c] != want_elev)
+                    wrong++;
+            }
+        }
+        free(fuel);
+        free(elev);
+    }
+    printf("  %d blocks, %d cells differ\n", nblocks, wrong);
+    CHECK(wrong == 0, "a block and its border have the same fuel and elevation as the whole grid");
+    free(gfuel);
+    free(gelev);
+}
+
 int main(void)
 {
     test_rng();
@@ -177,6 +228,7 @@ int main(void)
     test_wind();
     test_firebreak();
     test_ignitions();
+    test_landscape_blocks();
 
     if (failures) {
         printf("\n%d check(s) failed\n", failures);

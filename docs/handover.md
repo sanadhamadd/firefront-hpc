@@ -106,3 +106,63 @@ Checked so far: serial = OpenMP for 1, 2, 4, 8 threads in `make test`; on the cl
 - **Global coordinates everywhere:** `landscape_fill(..., x0, y0, ...)` takes the global position of the first interior cell; `cell_uniform` must get the **global** cell index `y * nx + x`; `sim_ignition_place(p, k, ...)` returns global positions from the seed, so every rank computes all N places and keeps the ones inside its block. `--ignite` and the default place are global too.
 - **Checksum:** sum each rank's part and reduce with `MPI_SUM` on `MPI_UINT64_T` (wrapping addition is order-independent). Must equal serial: **`0xb8683c550fa95bd6` for 8192², 400 steps, `--ignitions 16`** (seed 42, other options default), and `0x74cfadfb78e73134` for the default 1024², 100 steps. Test several rank counts, including grids that do not divide evenly.
 - **Logs:** keep using `slurm/job_helpers.sh` (no user or job names) and run `tools/anonymize_logs.py` on any older-format log before committing.
+
+---
+
+# Handover: phase 2 (MPI) → phase 3 (hybrid runs, overlap, profiling)
+
+From Sanad to Alejandro and Rodrigo. State of branch `halo-exchange`, merged into `main`.
+
+**Status.** The MPI version is written and tested on a laptop (Open MPI 5.0.11, gcc 16): it gives exactly the serial checksum for 1–16 ranks, strips and blocks, uneven grids, fires lit on rank corners, and hybrid ranks × threads. With 8 ranks the E1 problem gives `0xb8683c550fa95bd6`, the same as the serial cluster runs. **It has not run on the cluster yet** (my account is waiting for a password reset). The first person to build it there should check the build log and `slurm/mpi_check.sbatch` (below) before timing anything.
+
+## What is new
+
+| file | what it does |
+|---|---|
+| `src/decomp.c/.h` | process grid with `MPI_Cart_create`: `--decomp strips` (P × 1, whole rows) or `blocks` (`MPI_Dims_create`, the larger factor along the longer side); each rank's block, global offset and neighbours (`MPI_PROC_NULL` at the edge); uneven sizes go to the first ranks |
+| `src/halo.c/.h` | halo exchange in two phases: own rows north/south, then whole columns east/west including the border rows, so corners arrive without diagonal messages; `MPI_Sendrecv`, columns as `MPI_Type_vector` |
+| `src/sim.c` | each rank keeps only its block plus a one-cell border; global cell numbers for the random draws; border cells inside the grid get their real elevation (the slope term reads a burning neighbour's height); per-rank timers |
+| `src/main.c` | `MPI_Init_thread(FUNNELED)`, barrier before the clock, burnt area combined every 50 steps, `t_total` = slowest rank, only rank 0 prints |
+| `tests/test_decomp*.c`, `tests/test_halo_mpi.c`, `tests/run_mpi.sh` | `make test-mpi`: split, halo (corners included) and checksum vs serial on 1, 2, 3, 4, 6, 8 ranks, snapshots, RESULT fields |
+| `slurm/mpi_check.sbatch` | which launcher works with the OpenMPI module (srun default / pmi2 / pmix, mpirun) |
+| `slurm/e5_decomp.sbatch`, `slurm/submit_e5.sh` | E5 and the MPI part of E2 (51 jobs), waits when 8 jobs are queued |
+| `slurm/hybrid.sbatch` | E3 hybrid split, `--overlap 0`, same problem as E1, prints `checksum ok` |
+
+New RESULT fields (appended after `humidity`): `nodes decomp px py overlap t_halo t_compute t_reduce imbalance`. The three times are the largest value over the ranks; `t_halo` includes waiting for a slower neighbour. `imbalance` is the slowest rank's compute time over the average one. Details in `src/README.md`.
+
+## Build and first run on the cluster
+
+    sbatch slurm/build.sbatch          # now also: make mpi, make test-mpi (up to 8 ranks)
+    sbatch slurm/mpi_check.sbatch
+    sbatch --nodes=2 --ntasks-per-node=2 --nodelist=haskell,julia slurm/mpi_check.sbatch
+
+The build log must end with `all checks passed` and `all MPI checks passed`. The end of each `mpi_check` log lists every launcher as `works` or `fails`; pass the first one that works as `LAUNCH=...` to the job scripts (default `srun --cpu-bind=cores`). The two-node check also shows whether julia can run the binary built on haskell (`-march=native`); if it cannot, build with a CPU both nodes have, e.g. `make NATIVE=-march=znver4 mpi`.
+
+## Alejandro: hybrid runs (E3, E4, E6)
+
+`build/firefront_mpi` is the hybrid program: ranks from Slurm, threads from `OMP_NUM_THREADS`. Example, 2 nodes × 4 ranks × 4 cores:
+
+    sbatch --nodes=2 --ntasks-per-node=4 --cpus-per-task=4 --export=ALL,DECOMP=blocks,REP=1 slurm/hybrid.sbatch
+
+One node needs `--nodelist=haskell` on the command line (the script defaults to both nodes). With `--hint=nomultithread` every CPU of `--cpus-per-task` is a whole core, so ranks × threads ≤ 32 in total. `make_plots.py` already counts cores as ranks × threads; runs are grouped by variant, so MPI runs form their own series. Weak scaling (E4) only needs `NX` set per job, e.g. `--export=ALL,NX=4096,...`.
+
+## Rodrigo: overlap (E7) and profiling (E8, E9)
+
+The hook is `update_block(s, r0, r1, c0, c1, step)` in `src/sim.c`: it updates any rectangle of own cells (rows r0..r1, columns c0..c1, local, 1 = first own cell), with OpenMP inside. `sim_step` today does:
+
+    halo_exchange(...);                          /* blocking, timed as t_halo */
+    update_block(s, 1, ny, 1, nx, step);         /* whole block, timed as t_compute */
+
+For overlap: start the exchange with `MPI_Irecv`/`MPI_Isend` (add a `halo_start`/`halo_finish` pair in `halo.c`), call `update_block` for the inner cells `2..ny-1 × 2..nx-1`, wait, then call it for the four strips of the boundary ring. The two-phase corner trick needs the rows before the columns, so with non-blocking messages either keep two phases or send the four corners as extra messages. `--overlap` is already parsed and printed in the RESULT line; today `--overlap 1` is refused in `params.c`, so remove that check when the code exists. The checksum must stay the same as with `--overlap 0`; `make test-mpi` shows that quickly.
+
+Timers for the analysis: `t_halo` vs `t_compute` per run, and `imbalance`. With overlap, time only the wait as `t_halo`, so the before/after comparison shows how much communication was hidden.
+
+## Known issues
+
+- Not yet run on the cluster: launcher, OpenMPI 4.1.6 behaviour and julia's CPU are unchecked.
+- `--snapshot` with MPI gathers the whole picture on rank 0; fine for pictures, not for timed runs.
+- On a Mac, the MPI build without Homebrew gcc has no OpenMP: `make test-mpi MPI_OMP=`, or `OMPI_CC=gcc-16 make test-mpi` for the hybrid build.
+
+## Measured numbers
+
+To be added after E5 runs (strips vs blocks, 1 and 2 nodes, MPI strong scaling).

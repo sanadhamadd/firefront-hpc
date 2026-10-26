@@ -17,8 +17,10 @@
 #
 # Pinned to haskell (--nodelist): the -march=native build and every timed run then use
 # the same CPU, and env/cluster.md describes that node (cluster_info was taken there).
-# MPI phase: when an MPI target is added, also load OpenMPI/4.1.6-GCC-13.2.0 before building
-# (the node has a different system mpirun, Open MPI 5.0.7; see env/cluster.md).
+# MPI: the OpenMPI/4.1.6-GCC-13.2.0 module is loaded (it brings GCC/13.2.0 with it). The node
+# also has a system mpirun from Open MPI 5.0.7; the log shows which mpicc/mpirun are used,
+# and both must come from the module. make test-mpi runs the MPI checks with up to 8 ranks
+# on the 8 CPUs of this job (mpirun --oversubscribe).
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/build_%j.out
 #SBATCH --partition=cpu
@@ -33,17 +35,20 @@
 source slurm/job_helpers.sh
 
 module purge
-module load GCC/13.2.0 || exit 1   # see env/modules.txt
+module load OpenMPI/4.1.6-GCC-13.2.0 || exit 1   # also loads GCC/13.2.0, see env/modules.txt
+echo "mpicc: $(command -v mpicc)  mpirun: $(command -v mpirun)"
+mpirun --version 2>&1 | head -n 1
 
 node_state start
 echo "== -march that gcc picks on this node =="
 gcc -march=native -Q --help=target | grep march
 
-make clean && make && make omp && make stream && OMP_CC=gcc make test
+make clean && make && make omp && make stream && OMP_CC=gcc make test &&
+    make mpi && MPIRUN="mpirun --oversubscribe" RANKS="1 2 3 4 8" make test-mpi
 status=$?
 if [ $status -ne 0 ]; then
     echo "BUILD OR TESTS FAILED: removing the binaries so no timed job uses them"
-    rm -f build/firefront_serial build/firefront_omp build/stream
+    rm -f build/firefront_serial build/firefront_omp build/firefront_mpi build/stream
 fi
 
 node_state end

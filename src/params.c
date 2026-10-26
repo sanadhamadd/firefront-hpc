@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "decomp.h"
+
 void params_defaults(Params *p)
 {
     p->nx = 1024;
@@ -26,6 +28,8 @@ void params_defaults(Params *p)
     p->river = 1;
     p->snapshot = NULL;
     p->ignitions = 1;
+    p->decomp = DECOMP_BLOCKS;
+    p->overlap = 0;
 }
 
 static void usage(const char *prog)
@@ -43,6 +47,8 @@ static void usage(const char *prog)
     printf("  --ignite X,Y          cell where the fire starts (default: left part, middle row)\n");
     printf("  --ignitions N         number of fire starts; N > 1 places them from the seed, off the river (default 1)\n");
     printf("  --river 0|1           firebreak column in the landscape (default 1)\n");
+    printf("  --decomp strips|blocks  how the MPI version splits the grid (default blocks; ignored without MPI)\n");
+    printf("  --overlap 0|1         overlap the halo exchange with computation (default 0; 1 is not implemented yet)\n");
     printf("  --report-every N      print a progress line every N steps\n");
     printf("  --snapshot FILE       write the final state as a PGM image\n");
     printf("  --help\n");
@@ -81,6 +87,15 @@ int params_parse(Params *p, int argc, char **argv)
         else if (is_option(a, "--report-every")) p->report_every = atoi(v);
         else if (is_option(a, "--snapshot"))     p->snapshot = v;
         else if (is_option(a, "--ignitions"))    p->ignitions = atoi(v);
+        else if (is_option(a, "--overlap"))      p->overlap = atoi(v);
+        else if (is_option(a, "--decomp")) {
+            if (strcmp(v, "strips") == 0)      p->decomp = DECOMP_STRIPS;
+            else if (strcmp(v, "blocks") == 0) p->decomp = DECOMP_BLOCKS;
+            else {
+                fprintf(stderr, "--decomp must be strips or blocks\n");
+                return 1;
+            }
+        }
         else if (is_option(a, "--ignite")) {
             if (sscanf(v, "%d,%d", &p->ignite_x, &p->ignite_y) != 2) {
                 fprintf(stderr, "--ignite needs X,Y\n");
@@ -103,6 +118,14 @@ int params_parse(Params *p, int argc, char **argv)
     }
     if (p->humidity < 0.0f || p->humidity > 1.0f) {
         fprintf(stderr, "--humidity must be between 0 and 1\n");
+        return 1;
+    }
+    if (p->overlap != 0 && p->overlap != 1) {
+        fprintf(stderr, "--overlap must be 0 or 1\n");
+        return 1;
+    }
+    if (p->overlap == 1) {
+        fprintf(stderr, "--overlap 1 is not implemented yet; use --overlap 0 (blocking halo exchange)\n");
         return 1;
     }
     if (p->ignitions < 1) {

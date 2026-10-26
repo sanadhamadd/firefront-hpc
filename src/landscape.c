@@ -50,14 +50,17 @@ void landscape_fill(float *fuel, float *elev, int nx, int ny, int x0, int y0,
     for (int r = 0; r < ny + 2; r++) {
         for (int c = 0; c < nx + 2; c++) {
             int i = r * stride + c;
-            int on_border = (r == 0 || r == ny + 1 || c == 0 || c == nx + 1);
-            if (on_border) {
+            int gx = x0 + c - 1;
+            int gy = y0 + r - 1;
+            /* Border cells outside the global grid never burn: no fuel, no height.
+               Border cells inside it belong to a neighbouring rank and get their real
+               values, because the slope term reads the elevation of a burning neighbour. */
+            int outside = (gx < 0 || gx >= p->nx || gy < 0 || gy >= p->ny);
+            if (outside) {
                 fuel[i] = 0.0f;
                 elev[i] = 0.0f;
                 continue;
             }
-            int gx = x0 + c - 1;
-            int gy = y0 + r - 1;
             fuel[i] = 0.35f + 0.65f * value_noise(p->seed, 1, gx, gy, 48.0f);
             elev[i] = 120.0f * value_noise(p->seed, 2, gx, gy, 96.0f);
             if (p->river && gx >= river && gx < river + 3)

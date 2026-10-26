@@ -30,7 +30,7 @@ if [ "$a" != "$c" ]; then echo "ok:   another seed changes the checksum"; else e
 
 line=$("$bin" $args | grep '^RESULT')
 missing=""
-for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity; do
+for field in variant nx ny steps seed ranks threads t_total cells_per_s burning burnt checksum commit compiler ignitions places humidity nodes decomp px py overlap t_halo t_compute t_reduce imbalance; do
     case "$line" in
         *" $field="*) ;;
         *) missing="$missing $field" ;;
@@ -48,6 +48,8 @@ check "--ignitions 1 gives the same checksum as before" "$a" "$d"
 # RESULT line; it must never change unless the model itself is changed on purpose
 ref=$(checksum --nx 1024 --ny 1024 --steps 100)
 check "default 1024 x 1024, 100 steps keeps its reference checksum" "0x74cfadfb78e73134" "$ref"
+
+if "$bin" --overlap 1 >/dev/null 2>&1; then echo "FAIL: --overlap 1 was accepted"; fail=1; else echo "ok:   --overlap 1 is refused until it exists"; fi
 
 h=$("$bin" --nx 64 --ny 64 --steps 5 --humidity 0.4 | grep '^RESULT' | sed 's/.* humidity=\([^ ]*\).*/\1/')
 check "RESULT line reports the humidity used" "0.4" "$h"

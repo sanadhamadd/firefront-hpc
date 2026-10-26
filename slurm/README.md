@@ -9,14 +9,17 @@ The scripts **build nothing**. Build on a compute node first, wait for the job t
 
 | script | what it runs |
 |---|---|
-| build.sbatch | `make clean`, `make`, `make omp`, `make stream`, `OMP_CC=gcc make test` on a compute node (8 CPUs); logs the `-march` gcc picks there |
+| build.sbatch | `make clean`, `make`, `make omp`, `make stream`, `OMP_CC=gcc make test`, `make mpi`, `make test-mpi` (up to 8 ranks) on a compute node (8 CPUs) with the OpenMPI module; logs the `-march` gcc picks there and which `mpicc`/`mpirun` are used |
 | e1_baseline.sbatch | E1: serial, 8192², 400 steps, `--ignitions 16`, 1 core |
 | e2_omp_threads.sbatch | E2 (OpenMP part): same problem; one job = the whole series 1, 2, 4, 8, 16, 32 threads (one per core) plus 64 threads on the cores' hyper-threads |
 | stream.sbatch | STREAM triad, same series as E2, 1.6e9 doubles (12.8 GB) |
 | cluster_info_node.sbatch | `lscpu`, `numactl -H`, `nvidia-smi` on a compute node (1 task, 2 min) |
 | serial.sbatch | general serial template, 1 core |
 | omp.sbatch | general OpenMP template, threads from `--cpus-per-task` (at most 32) |
-| hybrid.sbatch | MPI + OpenMP, 2 nodes × 4 ranks × 4 cores (waits for `firefront_mpi`) |
+| mpi_check.sbatch | which MPI launcher works with the OpenMPI module (srun default / pmi2 / pmix, mpirun): small run on 4 ranks, compared with the serial checksum; also for 2 nodes |
+| e5_decomp.sbatch | E5 and the MPI part of E2: pure MPI (1 thread per rank), 8192², 400 steps, 16 ignitions; ranks and nodes from the sbatch line, `DECOMP=strips\|blocks`; prints `checksum ok` if it matches E1 |
+| submit_e5.sh | submits the E5 series (51 jobs) and waits whenever 8 jobs are queued; `DRY_RUN=1` only prints |
+| hybrid.sbatch | MPI + OpenMP (E3), default 2 nodes × 4 ranks × 4 cores, `--overlap 0`, same problem as E1; prints `checksum ok` |
 | gpu.sbatch | CUDA build on one GPU (waits for `firefront_cuda`) |
 | size_sweep.sbatch | 32 threads, grids 2048², 4096², 8192², 16384²; second pass with `--humidity 1` (no spread); does the cache change the throughput? |
 | job_helpers.sh | shared functions the jobs source: node state, job resources, run with `numastat` |
