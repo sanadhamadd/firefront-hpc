@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "decomp.h"
+
 void params_defaults(Params *p)
 {
     p->nx = 1024;
@@ -26,6 +28,7 @@ void params_defaults(Params *p)
     p->river = 1;
     p->snapshot = NULL;
     p->ignitions = 1;
+    p->decomp = DECOMP_BLOCKS;
 }
 
 static void usage(const char *prog)
@@ -43,6 +46,7 @@ static void usage(const char *prog)
     printf("  --ignite X,Y          cell where the fire starts (default: left part, middle row)\n");
     printf("  --ignitions N         number of fire starts; N > 1 places them from the seed, off the river (default 1)\n");
     printf("  --river 0|1           firebreak column in the landscape (default 1)\n");
+    printf("  --decomp strips|blocks  how the MPI version splits the grid (default blocks; ignored without MPI)\n");
     printf("  --report-every N      print a progress line every N steps\n");
     printf("  --snapshot FILE       write the final state as a PGM image\n");
     printf("  --help\n");
@@ -81,6 +85,14 @@ int params_parse(Params *p, int argc, char **argv)
         else if (is_option(a, "--report-every")) p->report_every = atoi(v);
         else if (is_option(a, "--snapshot"))     p->snapshot = v;
         else if (is_option(a, "--ignitions"))    p->ignitions = atoi(v);
+        else if (is_option(a, "--decomp")) {
+            if (strcmp(v, "strips") == 0)      p->decomp = DECOMP_STRIPS;
+            else if (strcmp(v, "blocks") == 0) p->decomp = DECOMP_BLOCKS;
+            else {
+                fprintf(stderr, "--decomp must be strips or blocks\n");
+                return 1;
+            }
+        }
         else if (is_option(a, "--ignite")) {
             if (sscanf(v, "%d,%d", &p->ignite_x, &p->ignite_y) != 2) {
                 fprintf(stderr, "--ignite needs X,Y\n");

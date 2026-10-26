@@ -22,6 +22,7 @@ typedef struct {
     int river;                  /* 1 = put a firebreak column into the landscape */
     const char *snapshot;       /* write the final state as a PGM image, or NULL */
     int ignitions;              /* number of 3 x 3 ignition patches; > 1 = placed from the seed */
+    int decomp;                 /* MPI split: DECOMP_STRIPS or DECOMP_BLOCKS (see decomp.h) */
 } Params;
 
 void params_defaults(Params *p);

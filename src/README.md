@@ -11,7 +11,8 @@ C sources of the simulator.
 | `rng.h` | hash based random number per cell and step | done |
 | `sim.h/.c` | grids, one time step, counts, checksum, PGM snapshot | done (serial, OpenMP pragma in place, not yet tried on the cluster) |
 | `timers.h` | wall clock | done |
-| `decomp.c`, `halo.c` | process grid and halo exchange (MPI) | to do |
+| `decomp.h/.c` | process grid (strips or blocks), each rank's block and its neighbours | done, tested with 1–8 ranks |
+| `halo.c` | halo exchange (MPI) | to do |
 | `step_cuda.cu`, `step_acc.c` | GPU port | to do |
 | `bench/stream.c` | STREAM triad memory bandwidth (OpenMP, first touch), `make stream`, prints `RESULT variant=stream ... bw_gbs= ... places=` | done |
 | `bench/` ping-pong | MPI latency and bandwidth | to do |
