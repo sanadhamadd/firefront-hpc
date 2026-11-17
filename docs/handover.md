@@ -159,7 +159,8 @@ Timers for the analysis: `t_halo` vs `t_compute` per run, and `imbalance`. With 
 
 ## Known issues
 
-- Not yet run on the cluster: launcher, OpenMPI 4.1.6 behaviour and julia's CPU are unchecked.
+- **Open MPI's default network layer (UCX) crashes at start-up in some 2-node runs** on this cluster: 16 ranks (strips and blocks) and 32 ranks as blocks, every time (jobs 32004, 32014, 32015 and the retries 32025–32027). The log shows `A system call failed during sm BTL initialization ... open(2) ... No such file or directory`, then a segmentation fault inside `libucs`, within a few seconds and before our code runs. With `OMPI_MCA_pml=ob1`, `OMPI_MCA_btl=self,vader,tcp` and `OMPI_MCA_btl_vader_backing_directory=/tmp` the same setups run correctly with the serial checksum (jobs 32028–32030). `slurm/e5_decomp.sbatch` and `slurm/hybrid.sbatch` now set this for every run (one node too, so all timings use the same MPI path) and print it as `MPI settings:` in the log; `MPI_DEFAULTS=1` turns it off.
+- Cluster check done on 17 Nov 2026 (build job 31993, launcher checks 31994 and 31995): all tests pass on haskell, `srun --cpu-bind=cores`, `srun --mpi=pmix` and `mpirun` work on one and two nodes, `srun --mpi=pmi2` does not; julia runs the binary built on haskell.
 - `--snapshot` with MPI gathers the whole picture on rank 0; fine for pictures, not for timed runs.
 - On a Mac, the MPI build without Homebrew gcc has no OpenMP: `make test-mpi MPI_OMP=`, or `OMPI_CC=gcc-16 make test-mpi` for the hybrid build.
 

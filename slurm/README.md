@@ -17,7 +17,7 @@ The scripts **build nothing**. Build on a compute node first, wait for the job t
 | serial.sbatch | general serial template, 1 core |
 | omp.sbatch | general OpenMP template, threads from `--cpus-per-task` (at most 32) |
 | mpi_check.sbatch | which MPI launcher works with the OpenMPI module (srun default / pmi2 / pmix, mpirun): small run on 4 ranks, compared with the serial checksum; also for 2 nodes |
-| e5_decomp.sbatch | E5 and the MPI part of E2: pure MPI (1 thread per rank), 8192², 400 steps, 16 ignitions; ranks and nodes from the sbatch line, `DECOMP=strips\|blocks`; prints `checksum ok` if it matches E1 |
+| e5_decomp.sbatch | E5 and the MPI part of E2: pure MPI (1 thread per rank), 8192², 400 steps, 16 ignitions; ranks and nodes from the sbatch line, `DECOMP=strips\|blocks`; Open MPI with `ob1` + shared memory + TCP (the default UCX layer crashed in 2-node runs); prints `checksum ok` if it matches E1 |
 | submit_e5.sh | submits the E5 series (51 jobs) and waits whenever 8 jobs are queued; `DRY_RUN=1` only prints |
 | hybrid.sbatch | MPI + OpenMP (E3), default 2 nodes × 4 ranks × 4 cores, `--overlap 0`, same problem as E1; prints `checksum ok` |
 | gpu.sbatch | CUDA build on one GPU (waits for `firefront_cuda`) |

@@ -71,6 +71,8 @@ The end of `results/raw/mpi_check_<id>.out` lists each launcher as `works` or `f
 
 Every E5 log must say `checksum ok`: the run reproduced the serial E1 result `0xb8683c550fa95bd6`.
 
+The E5 and hybrid jobs run Open MPI with `ob1` and shared memory plus TCP (`OMPI_MCA_pml=ob1`, `OMPI_MCA_btl=self,vader,tcp`), because the default UCX layer crashed at start-up in 2-node runs on this cluster (see `docs/handover.md`). Each log prints the setting as `MPI settings:`; `MPI_DEFAULTS=1` in the job environment turns it off.
+
 ## 5. Collect results and make figures
 
 Copy the job logs from the cluster into `results/raw/`. Logs written before the job scripts stopped recording user and job names still contain other people's names; remove them before committing (the mapping is only shown as counts, never saved):

@@ -41,6 +41,18 @@ module load OpenMPI/4.1.6-GCC-13.2.0 || exit 1   # also loads GCC/13.2.0, see en
 echo "mpicc: $(command -v mpicc)  mpirun: $(command -v mpirun)"
 mpirun --version 2>&1 | head -n 1
 
+# Open MPI's default network layer (UCX) crashed at start-up in 2-node runs on this cluster
+# (jobs 32004, 32014, 32015, 32025-32027: "sm BTL initialization" error, then a segfault in
+# libucs, before our code ran). The ob1 layer with shared memory and TCP ran the same setups
+# correctly (jobs 32028-32030), so every MPI run uses it, also on one node, to keep the
+# timings comparable. MPI_DEFAULTS=1 goes back to Open MPI's own choice.
+if [ "${MPI_DEFAULTS:-0}" != 1 ]; then
+    export OMPI_MCA_pml=${OMPI_MCA_pml:-ob1}
+    export OMPI_MCA_btl=${OMPI_MCA_btl:-self,vader,tcp}
+    export OMPI_MCA_btl_vader_backing_directory=${OMPI_MCA_btl_vader_backing_directory:-/tmp}
+fi
+echo "MPI settings: $(env | grep '^OMPI_MCA_' | sort | tr '\n' ' ')"
+
 bin=./build/firefront_mpi
 if [ ! -x "$bin" ]; then
     echo "$bin is missing: run slurm/build.sbatch first"
