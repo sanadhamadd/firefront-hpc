@@ -113,7 +113,7 @@ Checked so far: serial = OpenMP for 1, 2, 4, 8 threads in `make test`; on the cl
 
 From Sanad to Alejandro and Rodrigo. State of branch `halo-exchange`, merged into `main`.
 
-**Status.** The MPI version is written and tested on a laptop (Open MPI 5.0.11, gcc 16): it gives exactly the serial checksum for 1–16 ranks, strips and blocks, uneven grids, fires lit on rank corners, and hybrid ranks × threads. With 8 ranks the E1 problem gives `0xb8683c550fa95bd6`, the same as the serial cluster runs. **It has not run on the cluster yet** (my account is waiting for a password reset). The first person to build it there should check the build log and `slurm/mpi_check.sbatch` (below) before timing anything.
+**Status.** The MPI version gives exactly the serial checksum on a laptop (1–16 ranks, strips and blocks, uneven grids, hybrid) and on the cluster: `make test-mpi` passed in build job 31993, and all 51 E5 runs gave `0xb8683c550fa95bd6`. E5 results are at the end of this section.
 
 ## What is new
 
@@ -159,10 +159,29 @@ Timers for the analysis: `t_halo` vs `t_compute` per run, and `imbalance`. With 
 
 ## Known issues
 
-- Not yet run on the cluster: launcher, OpenMPI 4.1.6 behaviour and julia's CPU are unchecked.
+- **Open MPI's default network layer (UCX) crashes at start-up in some 2-node runs** on this cluster: 16 ranks (strips and blocks) and 32 ranks as blocks, every time (jobs 32004, 32014, 32015 and the retries 32025–32027). The log shows `A system call failed during sm BTL initialization ... open(2) ... No such file or directory`, then a segmentation fault inside `libucs`, within a few seconds and before our code runs. With `OMPI_MCA_pml=ob1`, `OMPI_MCA_btl=self,vader,tcp` and `OMPI_MCA_btl_vader_backing_directory=/tmp` the same setups run correctly with the serial checksum (jobs 32028–32030). `slurm/e5_decomp.sbatch` and `slurm/hybrid.sbatch` now set this for every run (one node too, so all timings use the same MPI path) and print it as `MPI settings:` in the log; `MPI_DEFAULTS=1` turns it off.
+- Cluster check done on 17 Nov 2026 (build job 31993, launcher checks 31994 and 31995): all tests pass on haskell, `srun --cpu-bind=cores`, `srun --mpi=pmix` and `mpirun` work on one and two nodes, `srun --mpi=pmi2` does not; julia runs the binary built on haskell.
 - `--snapshot` with MPI gathers the whole picture on rank 0; fine for pictures, not for timed runs.
 - On a Mac, the MPI build without Homebrew gcc has no OpenMP: `make test-mpi MPI_OMP=`, or `OMPI_CC=gcc-16 make test-mpi` for the hybrid build.
 
-## Measured numbers
+## Measured numbers (E5, 17 Nov 2026)
 
-To be added after E5 runs (strips vs blocks, 1 and 2 nodes, MPI strong scaling).
+51 jobs (`slurm/submit_e5.sh`, job ids in the `e5_decomp_*.out` names), 8192², 400 steps, `--ignitions 16`, one thread per rank, Open MPI with `ob1` and shared memory plus TCP, commit 674dab1 (binary built from 76eff8c by job 31993; the MPI code is the same). Every run printed `checksum ok`. Median of 3 repetitions, min–max in `results/tables/e5_summary.csv`; figures `results/figures/e5_time_vs_ranks.png` and `e5_efficiency_halo.png` (`tools/plot_e5.py`). Speed-up against the serial E1 median, 81.95 s.
+
+| ranks | strips, 1 node | blocks, 1 node | strips, 2 nodes | blocks, 2 nodes |
+|---|---|---|---|---|
+| 1 | 78.39 s | (same run) | | |
+| 2 | 41.40 s | 40.86 s | | |
+| 4 | 21.22 s | 20.28 s | | |
+| 8 | 10.71 s | 10.54 s | 17.02 s | 17.55 s |
+| 16 | 5.47 s | 5.22 s | 10.82 s | 8.87 s |
+| 32 | 2.72 s (30.1×, eff. 0.94) | 2.62 s (31.3×, eff. 0.98) | 4.98 s (eff. 0.51) | 4.56 s (eff. 0.56) |
+
+What they show:
+- **One node scales almost ideally** (efficiency 0.94–1.01 up to 32 ranks). 32 MPI ranks (2.62 s) are faster than 32 OpenMP threads in E2 (3.24 s).
+- **Blocks are a little faster than strips** at every rank count on one node, and spend less time in the halo exchange at 16–32 ranks (`t_halo` about 11 % of the run against about 14 %). Strips send two whole rows per step; blocks send four shorter edges.
+- **Two nodes are much slower:** efficiency 0.47–0.60, and `t_halo` is 43–56 % of the run. The compute imbalance (`imbalance`, slowest rank's compute time over the average) is about 1.5 there against about 1.05 on one node.
+- **It is not the second node's CPU:** julia (AMD EPYC 9745; haskell is a 9755) ran 8 ranks on its own in 10.72 s, `imbalance` 1.009, against 10.54 s on haskell (job 33981, `results/raw/e5_checks/`).
+- **The inter-node path costs most of it.** The runs use TCP between nodes because UCX crashed (see Known issues). In the crash tests, the 2-node runs that UCX did start were faster (8 ranks: about 11 s instead of 17 s, `results/raw/e5_ucx_tests/`), so part of the 2-node cost is the TCP fallback. Why the compute time itself becomes uneven across nodes is not measured; network processing on the same cores is a possible cause, not a confirmed one.
+
+For Rodrigo: the 2-node runs are where overlap can help most, since half of the run is spent in the halo exchange.

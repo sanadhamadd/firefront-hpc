@@ -1,0 +1,37 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=ob1tcp decomp=blocks ranks=16 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:18:22+01:00
+load: 5.58 6.43 4.81 3/7205 62543
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       2:28      2       8G haskell
+     30769        cpu  other  R 1-07:25:40      4       8G julia
+     32029        cpu   self  R       0:02     32       8G haskell,julia
+     31626        gpu  other  R      17:52     16      64G haskell
+   31918_8        gpu  other  R       2:50     16      96G julia
+     31996 interactive  other  R      11:09      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,18-21,268-271,274-277
+physcpubind: 12 13 14 15 18 19 20 21 268 269 270 271 274 275 276 277 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=32
+TRES=cpu=16,mem=16G,node=2,billing=16
+TRES=cpu=32,mem=16G,node=2,billing=32
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 16 rank(s) on 2 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=16 threads=1 t_total=5.8708 cells_per_s=4.458e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=2 decomp=blocks px=4 py=4 overlap=0 t_halo=1.1541 t_compute=5.3662 t_reduce=0.0498 imbalance=1.074
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:18:30+01:00
+load: 5.62 6.41 4.83 3/7203 62733
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       2:36      2       8G haskell
+     30769        cpu  other  R 1-07:25:48      4       8G julia
+     32029        cpu   self  R       0:10     32       8G haskell,julia
+     31626        gpu  other  R      18:00     16      64G haskell
+   31918_8        gpu  other  R       2:58     16      96G julia
+     31996 interactive  other  R      11:17      2       4G haskell

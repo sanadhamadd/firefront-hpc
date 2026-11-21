@@ -1,0 +1,90 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=retry decomp=blocks ranks=16 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:17:57+01:00
+load: 4.47 6.32 4.74 3/7208 61347
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       2:03      2       8G haskell
+     30769        cpu  other  R 1-07:25:15      4       8G julia
+     32026        cpu   self  R       0:01     32       8G haskell,julia
+     31626        gpu  other  R      17:27     16      64G haskell
+   31918_8        gpu  other  R       2:25     16      96G julia
+     31996 interactive  other  R      10:44      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,18-21,268-271,274-277
+physcpubind: 12 13 14 15 18 19 20 21 268 269 270 271 274 275 276 277 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=32
+TRES=cpu=16,mem=16G,node=2,billing=16
+TRES=cpu=32,mem=16G,node=2,billing=32
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+[haskell:61425:0:61425] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+[haskell:61426:0:61426] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+[haskell:61427:0:61427] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+[haskell:61428:0:61428] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+==== backtrace (tid:  61425) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x75c8504e6784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x75c8504e6954]
+==== backtrace (tid:  61426) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x796136ab3784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x796136ab3954]
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x796136ab3afa]
+=================================
+==== backtrace (tid:  61427) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x7adaa700e784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x7adaa700e954]
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x7adaa700eafa]
+=================================
+==== backtrace (tid:  61428) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x7a2b1d55f784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x7a2b1d55f954]
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x7a2b1d55fafa]
+=================================
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x75c8504e6afa]
+=================================
+[haskell:61425] *** Process received signal ***
+[haskell:61425] Signal: Segmentation fault (11)
+[haskell:61425] Signal code:  (-6)
+[haskell:61425] Failing at address: 0xf430d0000eff1
+[haskell:61426] *** Process received signal ***
+[haskell:61426] Signal: Segmentation fault (11)
+[haskell:61426] Signal code:  (-6)
+[haskell:61426] Failing at address: 0xf430d0000eff2
+[haskell:61427] *** Process received signal ***
+[haskell:61427] Signal: Segmentation fault (11)
+[haskell:61427] Signal code:  (-6)
+[haskell:61427] Failing at address: 0xf430d0000eff3
+[haskell:61428] *** Process received signal ***
+[haskell:61428] Signal: Segmentation fault (11)
+[haskell:61428] Signal code:  (-6)
+[haskell:61428] Failing at address: 0xf430d0000eff4
+[haskell:61425] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x75c852b7a560]
+[haskell:61425] *** End of error message ***
+[haskell:61426] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x79613d14e560]
+[haskell:61426] *** End of error message ***
+[haskell:61427] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x7adaad69f560]
+[haskell:61427] *** End of error message ***
+[haskell:61428] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x7a2b1fbf4560]
+[haskell:61428] *** End of error message ***
+srun: error: haskell: tasks 0-3: Segmentation fault
+slurmstepd-haskell: error:  mpi/pmix_v5: _errhandler: haskell [0]: pmixp_client_v2.c:211: Error handler invoked: status = -61, source = [slurm.pmix.32026.0:0]
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-haskell: error: *** STEP 32026.0 ON haskell CANCELLED AT 2026-11-17T19:18:01 ***
+srun: error: haskell: tasks 4-7: Killed
+srun: error: julia: tasks 8-15: Killed
+
+CHECKSUM MISMATCH: , serial 0xb8683c550fa95bd6
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:18:01+01:00
+load: 5.00 6.40 4.77 2/7218 61558
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       2:07      2       8G haskell
+     30769        cpu  other  R 1-07:25:19      4       8G julia
+     32026        cpu   self  R       0:05     32       8G haskell,julia
+     31626        gpu  other  R      17:31     16      64G haskell
+   31918_8        gpu  other  R       2:29     16      96G julia
+     31996 interactive  other  R      10:48      2       4G haskell

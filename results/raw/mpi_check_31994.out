@@ -1,0 +1,64 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+== PMI support of the OpenMPI module ==
+  Configure command line: '--prefix=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0' '--build=x86_64-pc-linux-gnu' '--host=x86_64-pc-linux-gnu' '--with-cuda=internal' '--enable-mpirun-prefix-by-default' '--enable-shared' '--with-hwloc=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/hwloc/2.9.2-GCCcore-13.2.0' '--with-libevent=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libevent/2.1.12-GCCcore-13.2.0' '--with-ofi=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libfabric/1.19.0-GCCcore-13.2.0' '--with-pmix=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/PMIx/4.2.6-GCCcore-13.2.0' '--with-ucx=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0' '--with-ucc=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCC/1.2.0-GCCcore-13.2.0' '--without-verbs' 'build_alias=x86_64-pc-linux-gnu' 'host_alias=x86_64-pc-linux-gnu' 'CC=gcc' 'CFLAGS=-O2 -ftree-vectorize -march=native -fno-math-errno' 'LDFLAGS=-L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCC/1.2.0-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCC/1.2.0-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/PMIx/4.2.6-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/PMIx/4.2.6-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libfabric/1.19.0-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libfabric/1.19.0-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libevent/2.1.12-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libevent/2.1.12-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/hwloc/2.9.2-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/hwloc/2.9.2-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/Perl/5.38.0-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/Perl/5.38.0-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/pkgconf/2.0.3-GCCcore-13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/pkgconf/2.0.3-GCCcore-13.2.0/lib -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/GCCcore/13.2.0/lib64 -L/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/GCCcore/13.2.0/lib' 'LIBS=-lm -lpthread' 'CPPFLAGS=-I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCC/1.2.0-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/PMIx/4.2.6-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libfabric/1.19.0-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libevent/2.1.12-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/hwloc/2.9.2-GCCcore-13.2.0/include -I/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/pkgconf/2.0.3-GCCcore-13.2.0/include' 'CXX=g++' 'CXXFLAGS=-O2 -ftree-vectorize -march=native -fno-math-errno' 'FC=gfortran' 'FCFLAGS=-O2 -ftree-vectorize -march=native -fno-math-errno' 'PKG_CONFIG_PATH=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/PMIx/4.2.6-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libfabric/1.19.0-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libevent/2.1.12-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenSSL/1.1/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/hwloc/2.9.2-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libpciaccess/0.17-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/libxml2/2.11.5-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/numactl/2.0.16-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/pkgconf/2.0.3-GCCcore-13.2.0/lib/pkgconfig:/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/lib64/pkgconfig' '--no-create' '--no-recursion'
+                MCA pmix: isolated (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                MCA pmix: ext3x (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                MCA pmix: flux (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                 MCA ess: slurm (MCA v2.1.0, API v3.0.0, Component v4.1.6)
+                 MCA ess: pmi (MCA v2.1.0, API v3.0.0, Component v4.1.6)
+                 MCA plm: slurm (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+                 MCA ras: slurm (MCA v2.1.0, API v2.0.0, Component v4.1.6)
+              MCA schizo: slurm (MCA v2.1.0, API v1.0.0, Component v4.1.6)
+== srun --mpi=list ==
+MPI plugin types are...
+	none
+	pmi2
+	pmix
+	cray_shasta
+specific pmix plugin versions available: pmix_v5
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:07:38+01:00
+load: 6.74 4.08 3.04 2/7098 49455
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31994        cpu   self  R       0:01      8       1G haskell
+     31626        gpu  other  R       7:08     16      64G haskell
+     31996 interactive  other  R       0:25      2       4G haskell
+== resources of this job ==
+cpus usable: 12,13,128,129,268,269,384,385
+physcpubind: 12 13 128 129 268 269 384 385 
+nodebind: 0 1 
+membind: 0 1 
+NumCPUs=8
+TRES=cpu=4,mem=4G,node=1,billing=4
+TRES=cpu=8,mem=4G,node=1,billing=8
+serial checksum: 0x3d0e0ec86217efe6
+== srun --cpu-bind=cores ==
+firefront mpi: 512 x 512 cells, 100 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 4 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=512 ny=512 steps=100 seed=42 ranks=4 threads=1 t_total=0.0204 cells_per_s=1.158e+09 burning=1591 burnt=43148 checksum=0x3d0e0ec86217efe6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=2 py=2 overlap=0 t_halo=0.0018 t_compute=0.0196 t_reduce=0.0001 imbalance=1.038
+== srun --mpi=pmi2 --cpu-bind=cores ==
+***    and potentially your MPI job)
+[haskell:49607] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!
+[haskell:49605] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!
+srun: error: haskell: tasks 0-3: Exited with exit code 1
+== srun --mpi=pmix --cpu-bind=cores ==
+firefront mpi: 512 x 512 cells, 100 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 4 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=512 ny=512 steps=100 seed=42 ranks=4 threads=1 t_total=0.0200 cells_per_s=1.181e+09 burning=1591 burnt=43148 checksum=0x3d0e0ec86217efe6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=2 py=2 overlap=0 t_halo=0.0016 t_compute=0.0193 t_reduce=0.0001 imbalance=1.024
+== mpirun --bind-to core ==
+firefront mpi: 512 x 512 cells, 100 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 4 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=512 ny=512 steps=100 seed=42 ranks=4 threads=1 t_total=0.0382 cells_per_s=6.169e+08 burning=1591 burnt=43148 checksum=0x3d0e0ec86217efe6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=2 py=2 overlap=0 t_halo=0.0015 t_compute=0.0375 t_reduce=0.0001 imbalance=1.011
+== summary (want 4 ranks, checksum 0x3d0e0ec86217efe6) ==
+
+works:  srun --cpu-bind=cores  (4 ranks on 1 node(s), checksum 0x3d0e0ec86217efe6)
+fails:  srun --mpi=pmi2 --cpu-bind=cores  (ranks=none, checksum=none)
+works:  srun --mpi=pmix --cpu-bind=cores  (4 ranks on 1 node(s), checksum 0x3d0e0ec86217efe6)
+works:  mpirun --bind-to core  (4 ranks on 1 node(s), checksum 0x3d0e0ec86217efe6)
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:07:48+01:00
+load: 6.31 4.08 3.05 2/7103 49856
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31994        cpu   self  R       0:11      8       1G haskell
+     31626        gpu  other  R       7:18     16      64G haskell
+     31996 interactive  other  R       0:35      2       4G haskell
