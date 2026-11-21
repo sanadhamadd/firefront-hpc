@@ -1,0 +1,49 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=1 decomp=blocks ranks=2 nodes=1 nodelist=haskell
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:13:43+01:00
+load: 9.04 6.00 4.05 3/7145 56034
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32006        cpu   self  R       0:03      4       8G haskell
+     31626        gpu  other  R      13:13     16      64G haskell
+     31996 interactive  other  R       6:30      2       4G haskell
+== resources of this job ==
+cpus usable: 12,13,268,269
+physcpubind: 12 13 268 269 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=4
+TRES=cpu=2,mem=8G,node=1,billing=2
+TRES=cpu=4,mem=8G,node=1,billing=4
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.f2f73585.0
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.f2f73585.1
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 2 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=2 threads=1 t_total=40.8655 cells_per_s=6.405e+08 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=1 py=2 overlap=0 t_halo=0.6356 t_compute=40.7905 t_reduce=0.0484 imbalance=1.008
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:14:28+01:00
+load: 7.28 6.02 4.15 4/7134 56427
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32006        cpu   self  R       0:48      4       8G haskell
+     31626        gpu  other  R      13:58     16      64G haskell
+     31996 interactive  other  R       7:15      2       4G haskell

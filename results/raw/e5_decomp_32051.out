@@ -1,0 +1,34 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI settings: OMPI_MCA_btl=self,vader,tcp OMPI_MCA_btl_vader_backing_directory=/tmp OMPI_MCA_hwloc_base_use_hwthreads_as_cpus=1 OMPI_MCA_plm_slurm_args=--external-launcher OMPI_MCA_pml=ob1 
+rep=2 decomp=strips ranks=2 nodes=1 nodelist=haskell
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:41:46+01:00
+load: 4.69 5.40 4.92 5/7230 81029
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32051        cpu   self  R       0:02      4       8G haskell
+     31626        gpu  other  R      41:16     16      64G haskell
+     31996 interactive  other  R      34:33      2       4G haskell
+     32031 interactive  other  R      14:33      2       4G haskell
+== resources of this job ==
+cpus usable: 13,14,269,270
+physcpubind: 13 14 269 270 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=4
+TRES=cpu=2,mem=8G,node=1,billing=2
+TRES=cpu=4,mem=8G,node=1,billing=4
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 2 rank(s) on 1 node(s), 1 thread(s), strips
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=2 threads=1 t_total=42.3397 cells_per_s=6.182e+08 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=strips px=1 py=2 overlap=0 t_halo=5.0350 t_compute=42.2941 t_reduce=0.1501 imbalance=1.065
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:42:31+01:00
+load: 4.50 5.25 4.89 3/7203 81409
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32051        cpu   self  R       0:47      4       8G haskell
+     31626        gpu  other  R      42:01     16      64G haskell
+     31996 interactive  other  R      35:18      2       4G haskell
+     32031 interactive  other  R      15:18      2       4G haskell

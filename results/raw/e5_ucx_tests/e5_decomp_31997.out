@@ -1,0 +1,31 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=1 decomp=strips ranks=1 nodes=1 nodelist=haskell
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:09:27+01:00
+load: 3.76 3.79 3.04 3/7087 50897
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31997        cpu   self  R       0:03      2       8G haskell
+     31626        gpu  other  R       8:57     16      64G haskell
+     31996 interactive  other  R       2:14      2       4G haskell
+== resources of this job ==
+cpus usable: 12,268
+physcpubind: 12 268 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=2
+TRES=cpu=1,mem=8G,node=1,billing=1
+TRES=cpu=2,mem=8G,node=1,billing=2
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 1 rank(s) on 1 node(s), 1 thread(s), strips
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=1 threads=1 t_total=78.7980 cells_per_s=3.321e+08 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=strips px=1 py=1 overlap=0 t_halo=0.0000 t_compute=78.7238 t_reduce=0.0740 imbalance=1.000
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:10:52+01:00
+load: 3.26 3.62 3.05 3/7093 51469
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31997        cpu   self  R       1:28      2       8G haskell
+     31626        gpu  other  R      10:22     16      64G haskell
+     31996 interactive  other  R       3:39      2       4G haskell

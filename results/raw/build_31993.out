@@ -1,0 +1,84 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:04:00+01:00
+load: 3.41 2.58 2.44 2/7055 43549
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31993        cpu   self  R       0:01      8       4G haskell
+     31626        gpu  other  R       3:30     16      64G haskell
+== -march that gcc picks on this node ==
+  -march=                     		znver4
+  Known valid arguments for -march= option:
+rm -rf build
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"76eff8c\" -DVARIANT=\"serial\" -o build/firefront_serial src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"76eff8c\" -DVARIANT=\"omp\" -o build/firefront_omp src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"76eff8c\" -o build/stream src/bench/stream.c
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"76eff8c\" -Isrc -o build/test_model tests/test_model.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -Isrc -o build/test_decomp tests/test_decomp.c src/decomp.c
+./build/test_model
+rng
+repeatable
+burnt cells never decrease
+fire goes out
+wind pushes the fire downwind
+  reach east 39 cells, west 0 cells
+fire does not cross the firebreak
+  burnt 4499 cells, 0 of them beyond the river
+several ignitions
+  burnt with 1 ignition 14155, with 16 ignitions 38378
+landscape blocks match the whole grid
+  9 blocks, 0 cells differ
+
+all checks passed
+./build/test_decomp
+split of a length into pieces
+one rank owns the whole grid
+
+all decomposition checks passed
+bash tests/run_all.sh
+ok:   two runs give the same checksum
+ok:   another seed changes the checksum
+ok:   RESULT line has all fields
+ok:   tiny grid is rejected
+ok:   --ignitions 0 is rejected
+ok:   --ignitions 1 gives the same checksum as before
+ok:   default 1024 x 1024, 100 steps keeps its reference checksum
+ok:   --overlap 1 is refused until it exists
+ok:   RESULT line reports the humidity used
+ok:   OpenMP (gcc) runs with 1 thread(s)
+ok:   OpenMP with 1 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 2 thread(s)
+ok:   OpenMP with 2 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 4 thread(s)
+ok:   OpenMP with 4 thread(s) gives the serial checksum
+ok:   OpenMP (gcc) runs with 8 thread(s)
+ok:   OpenMP with 8 thread(s) gives the serial checksum
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DUSE_MPI -DGIT_COMMIT=\"76eff8c\" -DVARIANT=\"mpi\" -o build/firefront_mpi src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DUSE_MPI -Isrc -o build/test_decomp_mpi tests/test_decomp_mpi.c src/decomp.c
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DUSE_MPI -Isrc -o build/test_halo_mpi tests/test_halo_mpi.c src/decomp.c src/halo.c
+bash tests/run_mpi.sh
+== split and halo, 1 rank(s)
+== split and halo, 2 rank(s)
+== split and halo, 3 rank(s)
+== split and halo, 4 rank(s)
+== split and halo, 8 rank(s)
+ok:   split and halo tests on ranks: 1 2 3 4 8
+checked: --nx 1024 --ny 1024 --steps 100 (serial 0x74cfadfb78e73134)
+checked: --nx 203 --ny 157 --steps 150 --ignitions 7 (serial 0x87f92fb6443fc16f)
+checked: --nx 157 --ny 203 --steps 150 --ignitions 7 --seed 3 (serial 0x4811f4ad2161b53b)
+checked: --nx 300 --ny 64 --steps 200 --ignitions 5 --wind-dir 90 --wind-speed 10 (serial 0x459847650542b857)
+checked: --nx 512 --ny 512 --steps 100 --ignitions 16 --humidity 0.4 (serial 0x0a8441afacf36287)
+ok:   2 ranks x 2 threads gives the serial checksum
+ok:   snapshots from 2, 3 and 6 ranks equal the serial one
+ok:   one RESULT line with ranks=6, blocks, 3 x 2 process grid
+ok:   a bad option is reported once
+all MPI checks passed
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:07:37+01:00
+load: 6.74 4.08 3.04 2/7103 49402
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     31993        cpu   self  R       3:38      8       4G haskell
+     31626        gpu  other  R       7:07     16      64G haskell
+     31996 interactive  other  R       0:24      2       4G haskell

@@ -1,0 +1,72 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=1 decomp=blocks ranks=8 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:15:45+01:00
+load: 12.79 7.59 4.83 19/7178 58943
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     30769        cpu  other  R 1-07:23:03      4       8G julia
+     32011        cpu   self  R       0:02     16       8G haskell,julia
+     31626        gpu  other  R      15:15     16      64G haskell
+   31918_8        gpu  other  R       0:13     16      96G julia
+     31996 interactive  other  R       8:32      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,268-271
+physcpubind: 12 13 14 15 268 269 270 271 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=16
+TRES=cpu=8,mem=16G,node=2,billing=8
+TRES=cpu=16,mem=16G,node=2,billing=16
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.5e9b2b9a.0
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.5e9b2b9a.1
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.5e9b2b9a.2
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.5e9b2b9a.3
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 8 rank(s) on 2 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=8 threads=1 t_total=11.0967 cells_per_s=2.359e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=2 decomp=blocks px=2 py=4 overlap=0 t_halo=1.8157 t_compute=10.4456 t_reduce=0.0624 imbalance=1.059
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:16:00+01:00
+load: 11.39 7.54 4.86 4/7210 59276
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       0:06      2       8G haskell
+     30769        cpu  other  R 1-07:23:18      4       8G julia
+     32011        cpu   self  R       0:17     16       8G haskell,julia
+     31626        gpu  other  R      15:30     16      64G haskell
+   31918_8        gpu  other  R       0:28     16      96G julia
+     31996 interactive  other  R       8:47      2       4G haskell

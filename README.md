@@ -190,7 +190,7 @@ flowchart LR
 - [x] E1 baseline and OpenMP thread scaling on the cluster: serial 82 s (3.1 ns per cell update), 32 threads 3.24 s, efficiency 0.79; logs in `results/raw/`, table in `results/tables/all.csv`, figures in `results/figures/`
 - [ ] Grid size sweep at 32 threads (`slurm/size_sweep.sbatch`)
 - [x] MPI version (strips, blocks, two-phase halo, per-rank timers): same checksum as serial on 1–8 ranks locally, including the E1 problem (`0xb8683c550fa95bd6`) on 8 ranks; job scripts `slurm/mpi_check.sbatch`, `slurm/e5_decomp.sbatch`, `slurm/submit_e5.sh`
-- [ ] MPI on the cluster: launcher check, E5 (strips vs blocks) and MPI strong scaling
+- [x] MPI on the cluster: build and launcher check, E5 (strips vs blocks, 1 and 2 nodes, 51 runs, all with the serial checksum); 32 ranks on one node 2.62 s (31× serial), two nodes much slower over TCP; results in `docs/handover.md`, `results/tables/e5_summary.csv`, `results/figures/e5_*.png`
 - [ ] Hybrid runs on 1 and 2 nodes
 - [ ] Overlap optimization and profiling
 - [ ] GPU port (CUDA + OpenACC)

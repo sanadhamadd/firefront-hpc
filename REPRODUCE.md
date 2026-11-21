@@ -80,6 +80,7 @@ Copy the job logs from the cluster into `results/raw/`. Logs written before the 
     python tools/anonymize_logs.py results/raw
     python tools/parse_logs.py results/raw > results/tables/all.csv
     python tools/make_plots.py results/tables/all.csv results/figures
+    python tools/plot_e5.py results/tables/all.csv results/tables results/figures   # E5 table and two figures
 
 ## What gets recorded for every run
 

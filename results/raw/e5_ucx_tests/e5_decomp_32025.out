@@ -1,0 +1,54 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=retry decomp=strips ranks=16 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:17:52+01:00
+load: 4.25 6.31 4.72 2/7231 60967
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       1:58      2       8G haskell
+     30769        cpu  other  R 1-07:25:10      4       8G julia
+     32025        cpu   self  R       0:03     32       8G haskell,julia
+     31626        gpu  other  R      17:22     16      64G haskell
+   31918_8        gpu  other  R       2:20     16      96G julia
+     31996 interactive  other  R      10:39      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,18-21,268-271,274-277
+physcpubind: 12 13 14 15 18 19 20 21 268 269 270 271 274 275 276 277 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=32
+TRES=cpu=16,mem=16G,node=2,billing=16
+TRES=cpu=32,mem=16G,node=2,billing=32
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+[haskell:61049:0:61049] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+==== backtrace (tid:  61049) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x77e1f0128784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x77e1f0128954]
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x77e1f0128afa]
+=================================
+[haskell:61049] *** Process received signal ***
+[haskell:61049] Signal: Segmentation fault (11)
+[haskell:61049] Signal code:  (-6)
+[haskell:61049] Failing at address: 0xf430d0000ee79
+[haskell:61049] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x77e1f1c06560]
+[haskell:61049] *** End of error message ***
+srun: error: haskell: task 4: Segmentation fault
+slurmstepd-haskell: error:  mpi/pmix_v5: _errhandler: haskell [0]: pmixp_client_v2.c:211: Error handler invoked: status = -61, source = [slurm.pmix.32025.0:4]
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-haskell: error: *** STEP 32025.0 ON haskell CANCELLED AT 2026-11-17T19:17:56 ***
+srun: error: julia: tasks 8-15: Killed
+srun: error: haskell: tasks 0-3,5-7: Killed
+
+CHECKSUM MISMATCH: , serial 0xb8683c550fa95bd6
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:17:56+01:00
+load: 4.47 6.32 4.74 3/7226 61207
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       2:02      2       8G haskell
+     30769        cpu  other  R 1-07:25:14      4       8G julia
+     32025        cpu   self  R       0:07     32       8G haskell,julia
+     31626        gpu  other  R      17:26     16      64G haskell
+   31918_8        gpu  other  R       2:24     16      96G julia
+     31996 interactive  other  R      10:43      2       4G haskell

@@ -1,0 +1,40 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI settings: OMPI_MCA_btl=self,vader,tcp OMPI_MCA_btl_vader_backing_directory=/tmp OMPI_MCA_hwloc_base_use_hwthreads_as_cpus=1 OMPI_MCA_plm_slurm_args=--external-launcher OMPI_MCA_pml=ob1 
+rep=3 decomp=strips ranks=8 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:55:16+01:00
+load: 5.87 5.40 5.20 2/7213 94045
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     30769        cpu  other  R 1-08:02:34      4       8G julia
+     32074        cpu   self  R       0:02     16       8G haskell,julia
+     31962        cpu  other  R      23:02    256      96G julia
+     31626        gpu  other  R      54:46     16      64G haskell
+     31737        gpu  other  R      22:02      8      96G julia
+     31996 interactive  other  R      48:03      2       4G haskell
+     32031 interactive  other  R      28:03      2       4G haskell
+== resources of this job ==
+cpus usable: 13-15,17,269-271,273
+physcpubind: 13 14 15 17 269 270 271 273 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=16
+TRES=cpu=8,mem=16G,node=2,billing=8
+TRES=cpu=16,mem=16G,node=2,billing=16
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 8 rank(s) on 2 node(s), 1 thread(s), strips
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=8 threads=1 t_total=17.2784 cells_per_s=1.515e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=2 decomp=strips px=1 py=8 overlap=0 t_halo=7.3535 t_compute=16.0626 t_reduce=0.3160 imbalance=1.478
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:55:35+01:00
+load: 5.73 5.41 5.20 2/7219 94283
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     30769        cpu  other  R 1-08:02:53      4       8G julia
+     32074        cpu   self  R       0:21     16       8G haskell,julia
+     31962        cpu  other  R      23:21    256      96G julia
+     31626        gpu  other  R      55:05     16      64G haskell
+     31737        gpu  other  R      22:21      8      96G julia
+     31996 interactive  other  R      48:22      2       4G haskell
+     32031 interactive  other  R      28:22      2       4G haskell

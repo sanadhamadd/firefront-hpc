@@ -1,0 +1,67 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=1 decomp=blocks ranks=4 nodes=1 nodelist=haskell
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:14:31+01:00
+load: 6.94 5.97 4.14 3/7136 56617
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32007        cpu   self  R       0:03      8       8G haskell
+     31626        gpu  other  R      14:01     16      64G haskell
+     31996 interactive  other  R       7:18      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,268-271
+physcpubind: 12 13 14 15 268 269 270 271 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=8
+TRES=cpu=4,mem=8G,node=1,billing=4
+TRES=cpu=8,mem=8G,node=1,billing=8
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.aac84c2a.0
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.aac84c2a.1
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.aac84c2a.2
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: unlink(2) /dev/shm/vader_segment.haskell.1000205.aac84c2a.3
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 4 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=4 threads=1 t_total=20.3963 cells_per_s=1.283e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=2 py=2 overlap=0 t_halo=1.3944 t_compute=20.2960 t_reduce=0.0527 imbalance=1.038
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:14:55+01:00
+load: 6.72 6.00 4.20 3/7166 56901
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32007        cpu   self  R       0:27      8       8G haskell
+     31626        gpu  other  R      14:25     16      64G haskell
+     31996 interactive  other  R       7:42      2       4G haskell

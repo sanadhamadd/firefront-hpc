@@ -1,0 +1,52 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI settings: OMPI_MCA_btl=self,vader,tcp OMPI_MCA_btl_vader_backing_directory=/tmp OMPI_MCA_hwloc_base_use_hwthreads_as_cpus=1 OMPI_MCA_plm_slurm_args=--external-launcher OMPI_MCA_pml=ob1 
+rep=julia_check decomp=blocks ranks=8 nodes=1 nodelist=julia
+== node state (start) ==
+node: julia
+time: 2026-11-21T16:08:15+01:00
+load: 36.80 36.26 45.56 37/14540 2100010
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     33977        cpu  other  R       4:07     16      64G julia
+     33960        cpu  other  R      25:24     16      48G julia
+     33953        cpu  other  R      34:07     16      48G julia
+     33981        cpu   self  R       0:03     16       8G julia
+     33980        cpu  other  R       1:08      4       8G julia
+     32961        gpu  other  R   11:15:40     64     256G julia
+     33855 interactive  other  R    2:55:24      4      16G julia
+     33760 interactive  other  R    3:38:24      2       4G julia
+     33870 interactive  other  R    2:01:20      2       4G julia
+     33971 interactive  other  R      18:47      2       4G julia
+     33972 interactive  other  R      16:52      2       4G julia
+     33902 interactive  other  R    1:27:23      2       4G julia
+     33871 interactive  other  R    1:55:04      2       4G julia
+== resources of this job ==
+cpus usable: 65-72,321-328
+physcpubind: 65 66 67 68 69 70 71 72 321 322 323 324 325 326 327 328 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=16
+TRES=cpu=8,mem=8G,node=1,billing=8
+TRES=cpu=16,mem=8G,node=1,billing=16
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 8 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=8 threads=1 t_total=10.7165 cells_per_s=2.442e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=76eff8c compiler=13.2.0 ignitions=16 places=none humidity=0.2 nodes=1 decomp=blocks px=2 py=4 overlap=0 t_halo=0.3300 t_compute=10.5263 t_reduce=0.0220 imbalance=1.009
+checksum ok
+== node state (end) ==
+node: julia
+time: 2026-11-21T16:08:27+01:00
+load: 38.63 36.68 45.60 34/14583 2100261
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     33977        cpu  other  R       4:19     16      64G julia
+     33960        cpu  other  R      25:36     16      48G julia
+     33953        cpu  other  R      34:19     16      48G julia
+     33981        cpu   self  R       0:15     16       8G julia
+     33980        cpu  other  R       1:20      4       8G julia
+     32961        gpu  other  R   11:15:52     64     256G julia
+     33855 interactive  other  R    2:55:36      4      16G julia
+     33760 interactive  other  R    3:38:36      2       4G julia
+     33870 interactive  other  R    2:01:32      2       4G julia
+     33971 interactive  other  R      18:59      2       4G julia
+     33972 interactive  other  R      17:04      2       4G julia
+     33902 interactive  other  R    1:27:35      2       4G julia
+     33871 interactive  other  R    1:55:16      2       4G julia

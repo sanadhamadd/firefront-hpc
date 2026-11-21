@@ -1,0 +1,206 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+rep=1 decomp=blocks ranks=16 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-17T19:16:03+01:00
+load: 11.39 7.54 4.86 20/7212 59468
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       0:09      2       8G haskell
+     30769        cpu  other  R 1-07:23:21      4       8G julia
+     32014        cpu   self  R       0:03     32       8G haskell,julia
+     31626        gpu  other  R      15:33     16      64G haskell
+   31918_8        gpu  other  R       0:31     16      96G julia
+     31996 interactive  other  R       8:50      2       4G haskell
+== resources of this job ==
+cpus usable: 12-15,18-21,268-271,274-277
+physcpubind: 12 13 14 15 18 19 20 21 268 269 270 271 274 275 276 277 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=32
+TRES=cpu=16,mem=16G,node=2,billing=16
+TRES=cpu=32,mem=16G,node=2,billing=32
+command: srun --cpu-bind=cores ./build/firefront_mpi ...
+[haskell:59554:0:59554] Caught signal 11 (Segmentation fault: address not mapped to object at address (nil))
+==== backtrace (tid:  59554) ====
+ 0  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(ucs_handle_error+0x2b4) [0x70e860823784]
+ 1  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29954) [0x70e860823954]
+ 2  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/UCX/1.15.0-GCCcore-13.2.0/lib64/libucs.so.0(+0x29afa) [0x70e860823afa]
+=================================
+[haskell:59554] *** Process received signal ***
+[haskell:59554] Signal: Segmentation fault (11)
+[haskell:59554] Signal code:  (-6)
+[haskell:59554] Failing at address: 0xf430d0000e8a2
+[haskell:59554] [ 0] /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6(+0x38560)[0x70e862eba560]
+[haskell:59554] *** End of error message ***
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during sm BTL initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  System call: open(2)
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+A system call failed during shared memory initialization that should
+not have.  It is likely that your MPI job will now either abort or
+experience performance degradation.
+
+  Local host:  haskell
+  System call: open(2) 
+  Error:       No such file or directory (errno 2)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: Open MPI failed to TCP connect to a peer MPI process.  This
+should not happen.
+
+Your Open MPI job may now hang or fail.
+
+  Local host: haskell
+  PID:        59550
+  Message:    connect() to 10.205.10.23:1031 failed
+  Error:      Operation now in progress (115)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: Open MPI failed to TCP connect to a peer MPI process.  This
+should not happen.
+
+Your Open MPI job may now hang or fail.
+
+  Local host: haskell
+  PID:        59552
+  Message:    connect() to 10.205.10.23:1031 failed
+  Error:      Operation now in progress (115)
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+WARNING: Open MPI failed to TCP connect to a peer MPI process.  This
+should not happen.
+
+Your Open MPI job may now hang or fail.
+
+  Local host: haskell
+  PID:        59553
+  Message:    connect() to 10.205.10.23:1031 failed
+  Error:      Operation now in progress (115)
+--------------------------------------------------------------------------
+srun: error: haskell: task 7: Segmentation fault
+slurmstepd-haskell: error:  mpi/pmix_v5: _errhandler: haskell [0]: pmixp_client_v2.c:211: Error handler invoked: status = -61, source = [slurm.pmix.32014.0:7]
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-haskell: error: *** STEP 32014.0 ON haskell CANCELLED AT 2026-11-17T19:16:07 ***
+srun: error: julia: tasks 8-15: Killed
+srun: error: haskell: tasks 0-6: Killed
+
+CHECKSUM MISMATCH: , serial 0xb8683c550fa95bd6
+== node state (end) ==
+node: haskell
+time: 2026-11-17T19:16:07+01:00
+load: 11.36 7.60 4.89 4/7255 59727
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     32024        cpu  other  R       0:13      2       8G haskell
+     30769        cpu  other  R 1-07:23:25      4       8G julia
+     32014        cpu   self  R       0:07     32       8G haskell,julia
+     31626        gpu  other  R      15:37     16      64G haskell
+   31918_8        gpu  other  R       0:35     16      96G julia
+     31996 interactive  other  R       8:54      2       4G haskell
