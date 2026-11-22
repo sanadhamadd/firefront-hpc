@@ -54,7 +54,7 @@ class E7AnalysisTest(unittest.TestCase):
         profiled = self.log(102, fixture().replace("profile=none", "profile=perf"))
         self.assertEqual(list(read_pairs([incomplete, profiled])), [])
 
-    def test_missing_verification_mixed_builds_and_duplicate_reps_are_rejected(self):
+    def test_missing_verification_mixed_builds_and_duplicate_reps_are_handled(self):
         missing = self.log(101, fixture().replace("VERIFIED", "FAILED"))
         with self.assertRaisesRegex(ValueError, "missing untimed verification"):
             list(read_pairs([missing]))
@@ -63,8 +63,8 @@ class E7AnalysisTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Mixed builds"):
             list(summarize(read_pairs([first, mixed])))
         duplicate = self.log(104, fixture())
-        with self.assertRaisesRegex(ValueError, "Duplicate repetition"):
-            list(summarize(read_pairs([first, duplicate])))
+        summary, = summarize(read_pairs([first, duplicate]))
+        self.assertEqual(summary["pairs"], 1)
 
     def test_inconsistent_phase_times_are_rejected(self):
         path = self.log(101, fixture().replace("t_wait=0.75", "t_wait=0.25"))

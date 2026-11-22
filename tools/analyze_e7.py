@@ -71,8 +71,18 @@ def summarize(pairs):
             baseline["decomp"], baseline["allocation"],
         )
         rep = int(baseline["rep"])
-        if rep in configs[config]:
-            raise ValueError(f"Duplicate repetition {rep} for {config}. Select one job per repetition.")
+        previous = configs[config].get(rep)
+        if previous is not None:
+            previous_id = int(previous[0]["job_id"])
+            current_id = int(baseline["job_id"])
+            if current_id == previous_id:
+                continue
+            if current_id < previous_id:
+                print(f"Excluding duplicate repetition {rep} for {config}: "
+                      f"job {current_id} superseded by job {previous_id}", file=sys.stderr)
+                continue
+            print(f"Excluding duplicate repetition {rep} for {config}: "
+                  f"job {previous_id} superseded by job {current_id}", file=sys.stderr)
         configs[config][rep] = (baseline, overlap)
     for config, repeats in sorted(configs.items()):
         nodes, ranks, threads, decomp, allocation = config
@@ -94,15 +104,87 @@ def summarize(pairs):
 def write_csv(path, rows):
     columns = list(dict.fromkeys(key for row in rows for key in row))
     with path.open("w", newline="", encoding="utf-8") as file:
-        writer = csv.DictWriter(file, fieldnames=columns)
+        writer = csv.DictWriter(file, fieldnames=columns, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
 
+def plot_without_matplotlib(summary, out):
+    """Dependency-free SVG fallback for login-node analysis."""
+    specs = (
+        ("runtime", "Wall-clock time (s)",
+         (("blocking_median", "Blocking"), ("overlap_median", "Overlap"))),
+        ("speedup", "Optimization speedup (x)",
+         (("optimization_speedup", "Blocking / overlap"),)),
+        ("communication", "MPI call time (s)",
+         (("blocking_t_halo", "Blocking exchange"),
+          ("overlap_t_wait", "Overlap wait"),
+          ("overlap_t_halo", "Overlap post + wait"))),
+        ("imbalance", "Compute imbalance (max / mean)",
+         (("blocking_imbalance", "Blocking"), ("overlap_imbalance", "Overlap"))),
+    )
+    colors = ("#25496b", "#c55c28", "#55958a")
+    for name, ylabel, series in specs:
+        width, height = 900, 500
+        left, right, top, bottom = 90, 30, 50, 90
+        plot_width, plot_height = width - left - right, height - top - bottom
+        maximum = max(float(row[key]) for row in summary for key, _ in series)
+        if name in ("speedup", "imbalance"):
+            maximum = max(maximum, 1.0)
+        maximum *= 1.12
+        bars = []
+        group_width = plot_width / len(summary)
+        bar_width = group_width * 0.72 / len(series)
+        for x_index, row in enumerate(summary):
+            center = left + group_width * (x_index + 0.5)
+            for series_index, (key, label) in enumerate(series):
+                value = float(row[key])
+                bar_height = plot_height * value / maximum
+                x = center + (series_index - (len(series) - 1) / 2) * bar_width
+                y = top + plot_height - bar_height
+                bars.append((x, y, bar_width, bar_height, colors[series_index]))
+        parts = [
+            f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">',
+            f'<rect width="100%" height="100%" fill="white"/>',
+            f'<text x="{left}" y="28" font-family="sans-serif" font-size="18">'
+            f'FireFront-HPC · 8192 × 8192, 400 steps</text>',
+            f'<text x="18" y="{top + plot_height / 2}" font-family="sans-serif" '
+            f'font-size="14" transform="rotate(-90 18 {top + plot_height / 2})">{ylabel}</text>',
+        ]
+        for tick in range(6):
+            y = top + plot_height - tick * plot_height / 5
+            value = maximum * tick / 5
+            parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{width-right}" y2="{y:.1f}" '
+                         'stroke="#dddddd" stroke-width="1"/>')
+            parts.append(f'<text x="{left-8}" y="{y+4:.1f}" text-anchor="end" '
+                         f'font-family="sans-serif" font-size="11">{value:.2f}</text>')
+        for x, y, bar_width, bar_height, color in bars:
+            parts.append(f'<rect x="{x:.1f}" y="{y:.1f}" width="{bar_width:.1f}" '
+                         f'height="{bar_height:.1f}" fill="{color}"/>')
+        for x_index, row in enumerate(summary):
+            center = left + group_width * (x_index + 0.5)
+            label = f'{row["nodes"]}N · {row["ranks"]}R'
+            parts.append(f'<text x="{center:.1f}" y="{height-55}" text-anchor="middle" '
+                         f'font-family="sans-serif" font-size="12">{label}</text>')
+        legend_x = left
+        for series_index, (_, label) in enumerate(series):
+            x = legend_x + series_index * 180
+            parts.append(f'<rect x="{x}" y="{height-28}" width="18" height="10" '
+                         f'fill="{colors[series_index]}"/>')
+            parts.append(f'<text x="{x+24}" y="{height-19}" font-family="sans-serif" '
+                         f'font-size="12">{label}</text>')
+        parts.append('</svg>')
+        (out / f"e7_{name}.svg").write_text('\n'.join(parts), encoding="utf-8")
+
+
 def plot(summary, out):
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except ImportError:
+        plot_without_matplotlib(summary, out)
+        return
 
     x = list(range(len(summary)))
     labels = [f'{r["nodes"]}N · {r["ranks"]}R × {r["threads"]}T\n{r["decomp"]}\n{r["allocation"]}'

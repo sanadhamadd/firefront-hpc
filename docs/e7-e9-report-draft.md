@@ -31,9 +31,16 @@ prevents a controlled sweep across transports. The one-node case spent
 most of its time updating cells, and these timers alone cannot determine
 whether memory bandwidth or instruction throughput limits that kernel.
 
-[PENDING: E9 medians for exposed MPI time, cell updates, reductions and
-compute imbalance. Cite the E7 communication and imbalance figures.
-Include rank 0 perf observations only if counters ran successfully.]
+Across the verified E7/E9 block-decomposition sweep, exposed communication
+was highest across nodes. The medians for 32 ranks on two nodes were 0.897 s
+for blocking `t_halo` and 0.368 s for overlap `t_halo`, versus 0.302 s and
+0.380 s on one node. The two-node overlap wait was 0.359 s, lower than the
+blocking exchange, while overlap interior updates were 5.037 s for 16 ranks
+and 2.637 s for 32 ranks. Compute imbalance did not improve consistently:
+the overlap median was 1.090 at 32 ranks across two nodes and 1.139 on one
+node. Count-reduction maxima remained at or below 0.202 s. No rank-0 `perf`
+counter run was available in the completed campaign, so E9 is reported from
+the all-rank application timers rather than hardware-counter observations.
 
 ## 7. Optimization
 
@@ -58,10 +65,17 @@ interior and boundary work, MPI posting, and completion wait. End-to-end
 runtime captures any additional OpenMP worksharing and communication
 bookkeeping.
 
-[PENDING: SciTech reference check and median blocking versus overlap runtime,
-min–max, optimization speedup and runtime reduction for one and two nodes.
-Cite the E7 runtime and speedup figures. Identify which configurations
-regressed or improved and compare the measured post/wait and compute times.]
+The complete checksum-verified SciTech sweep contains five repetitions for
+each of seven block-decomposition configurations. At 4 ranks on one node, the
+median runtime improved from 19.173 s blocking to 18.420 s overlap (3.93%
+reduction, 1.041×). At 8 ranks the improvement was 5.46% on one node and
+5.87% across two nodes. At 16 ranks, one-node overlap was 1.17% slower
+(4.877 s to 4.934 s), while two-node overlap improved 7.70% (5.599 s to
+5.168 s). At 32 ranks, one-node overlap was 4.87% slower (2.597 s to
+2.723 s), whereas two-node overlap improved 14.07% (3.131 s to 2.690 s).
+The complete range was blocking 18.550–19.237 s versus overlap 17.913–18.893 s
+at 4 ranks, and blocking 3.082–3.145 s versus overlap 2.598–2.849 s at
+32 ranks across two nodes.
 
 The block layout overlaps the row phase only. Column exchange still
 depends on the completed rows. MPI progress during interior work depends
