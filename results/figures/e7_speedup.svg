@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="500">
+<rect width="100%" height="100%" fill="white"/>
+<text x="90" y="28" font-family="sans-serif" font-size="18">FireFront-HPC · 8192 × 8192, 400 steps</text>
+<text x="18" y="230.0" font-family="sans-serif" font-size="14" transform="rotate(-90 18 230.0)">Optimization speedup (x)</text>
+<line x1="90" y1="410.0" x2="870" y2="410.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="414.0" text-anchor="end" font-family="sans-serif" font-size="11">0.00</text>
+<line x1="90" y1="338.0" x2="870" y2="338.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="342.0" text-anchor="end" font-family="sans-serif" font-size="11">0.26</text>
+<line x1="90" y1="266.0" x2="870" y2="266.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="270.0" text-anchor="end" font-family="sans-serif" font-size="11">0.52</text>
+<line x1="90" y1="194.0" x2="870" y2="194.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="198.0" text-anchor="end" font-family="sans-serif" font-size="11">0.78</text>
+<line x1="90" y1="122.0" x2="870" y2="122.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="126.0" text-anchor="end" font-family="sans-serif" font-size="11">1.04</text>
+<line x1="90" y1="50.0" x2="870" y2="50.0" stroke="#dddddd" stroke-width="1"/>
+<text x="82" y="54.0" text-anchor="end" font-family="sans-serif" font-size="11">1.30</text>
+<rect x="145.7" y="122.5" width="80.2" height="287.5" fill="#25496b"/>
+<rect x="257.1" y="117.8" width="80.2" height="292.2" fill="#25496b"/>
+<rect x="368.6" y="137.0" width="80.2" height="273.0" fill="#25496b"/>
+<rect x="480.0" y="146.6" width="80.2" height="263.4" fill="#25496b"/>
+<rect x="591.4" y="116.6" width="80.2" height="293.4" fill="#25496b"/>
+<rect x="702.9" y="110.7" width="80.2" height="299.3" fill="#25496b"/>
+<rect x="814.3" y="88.6" width="80.2" height="321.4" fill="#25496b"/>
+<text x="145.7" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">1N · 4R</text>
+<text x="257.1" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">1N · 8R</text>
+<text x="368.6" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">1N · 16R</text>
+<text x="480.0" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">1N · 32R</text>
+<text x="591.4" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">2N · 8R</text>
+<text x="702.9" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">2N · 16R</text>
+<text x="814.3" y="445" text-anchor="middle" font-family="sans-serif" font-size="12">2N · 32R</text>
+<rect x="90" y="472" width="18" height="10" fill="#25496b"/>
+<text x="114" y="481" font-family="sans-serif" font-size="12">Blocking / overlap</text>
+</svg>

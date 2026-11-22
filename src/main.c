@@ -187,7 +187,7 @@ int main(int argc, char **argv)
        together after a barrier; the run time is that of the slowest rank. */
     int warmup = (p.steps > 20) ? 10 : 0;
     double t_start = 0.0, t_reduce = 0.0;
-    if (warmup == 0) {
+    if (!p.verify_only && warmup == 0) {
         barrier();
         t_start = wall_seconds();
     }
@@ -200,20 +200,27 @@ int main(int argc, char **argv)
         int reduce = (step % REDUCE_EVERY == 0);
         int report = (p.report_every > 0 && step % p.report_every == 0);
         if (reduce || report) {
-            double t0 = wall_seconds();
+            double t0 = p.verify_only ? 0.0 : wall_seconds();
             long long burning = sim_count_burning(sim);      /* every rank takes part */
             long long burnt = sim_count_burnt(sim);
-            if (step > warmup)
+            if (!p.verify_only && step > warmup)
                 t_reduce += wall_seconds() - t0;
             if (report && rank == 0)
                 printf("step %d: %lld burning, %lld burnt\n", step, burning, burnt);
         }
 
-        if (step == warmup && warmup > 0) {
+        if (!p.verify_only && step == warmup && warmup > 0) {
             barrier();
             sim_reset_times(sim);
             t_start = wall_seconds();
         }
+    }
+    if (p.verify_only) {
+        unsigned long long checksum = (unsigned long long)sim_checksum(sim);
+        if (rank == 0)
+            printf("VERIFY checksum=0x%016llx\n", checksum);
+        sim_free(sim);
+        return finish(0);
     }
     double t_mine = (p.steps > 0) ? wall_seconds() - t_start : 0.0;
 
@@ -224,6 +231,13 @@ int main(int argc, char **argv)
     max_and_sum(t_halo_mine, &t_halo, &t_halo_sum);
     max_and_sum(t_compute_mine, &t_compute, &t_compute_sum);
     max_and_sum(t_reduce, &t_reduce_max, &t_reduce_sum);
+#ifdef USE_MPI
+    double phases[4], phase_max[4];
+    if (p.overlap) {
+        sim_overlap_times(sim, phases);
+        MPI_Reduce(phases, phase_max, 4, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
+    }
+#endif
     /* how much longer the slowest rank computes than the average one (1 = even) */
     double imbalance = (t_compute_sum > 0.0) ? t_compute / (t_compute_sum / ranks) : 1.0;
 
@@ -247,8 +261,14 @@ int main(int argc, char **argv)
         printf(" humidity=%g", p.humidity);
         /* fields added for MPI; only appended, so older logs and the parser still work.
            t_halo, t_compute and t_reduce are the largest value over the ranks. */
-        printf(" nodes=%d decomp=%s px=%d py=%d overlap=%d t_halo=%.4f t_compute=%.4f t_reduce=%.4f imbalance=%.3f\n",
+        printf(" nodes=%d decomp=%s px=%d py=%d overlap=%d t_halo=%.4f t_compute=%.4f t_reduce=%.4f imbalance=%.3f",
                nodes, decomp_name(p.decomp), px, py, p.overlap, t_halo, t_compute, t_reduce_max, imbalance);
+#ifdef USE_MPI
+        if (p.overlap)
+            printf(" t_post=%.4f t_wait=%.4f t_interior=%.4f t_boundary=%.4f",
+                   phase_max[0], phase_max[1], phase_max[2], phase_max[3]);
+#endif
+        putchar('\n');
     }
 
     if (p.snapshot) {
