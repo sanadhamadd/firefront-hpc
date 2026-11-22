@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
 #include "decomp.h"
 #include "halo.h"
 #include "landscape.h"
@@ -25,6 +29,18 @@ struct Sim {
     uint8_t *new_state;
     float *fuel;
     float *elev;
+
+    /* Tile skipping (--skip-tiles T, experiment E8). The own cells are cut into tiles of
+       T x T cells. A tile with no burning cell in it or next to it cannot change, so its
+       update is skipped. See update_tiles. */
+    int tiles_x, tiles_y;      /* tiles across and down this rank's block */
+    int tiles_ready;           /* 1 = tile_burning describes old_state */
+    int *tile_burning;         /* burning cells per tile in old_state */
+    int *tile_burning_next;    /* the same for new_state, counted during the step */
+    uint8_t *tile_same;        /* 1 = old_state and new_state hold the same cells on this tile */
+    uint8_t *tile_updated;     /* 1 = some cell of the tile was computed in this step */
+    long long tiles_updated;   /* tiles computed since the last sim_reset_times */
+    long long tiles_total;     /* tiles looked at since the last sim_reset_times */
 };
 
 static size_t grid_cells(const Decomp *d)
@@ -120,6 +136,20 @@ Sim *sim_create(const Params *p)
         sim_free(s);
         return NULL;
     }
+    if (p->skip_tiles > 0) {
+        int t = p->skip_tiles;
+        s->tiles_x = (s->d.nx + t - 1) / t;
+        s->tiles_y = (s->d.ny + t - 1) / t;
+        size_t tiles = (size_t)s->tiles_x * (size_t)s->tiles_y;
+        s->tile_burning = calloc(tiles, sizeof(int));
+        s->tile_burning_next = calloc(tiles, sizeof(int));
+        s->tile_same = calloc(tiles, 1);
+        s->tile_updated = calloc(tiles, 1);
+        if (!s->tile_burning || !s->tile_burning_next || !s->tile_same || !s->tile_updated) {
+            sim_free(s);
+            return NULL;
+        }
+    }
 
     landscape_fill(s->fuel, s->elev, s->d.nx, s->d.ny, s->d.x0, s->d.y0, p);
 
@@ -145,9 +175,146 @@ void sim_free(Sim *s)
     free(s->new_state);
     free(s->fuel);
     free(s->elev);
+    free(s->tile_burning);
+    free(s->tile_burning_next);
+    free(s->tile_same);
+    free(s->tile_updated);
     halo_free(&s->halo);
     decomp_free(&s->d);
     free(s);
+}
+
+/* The cell rule: write the new state of own cell (r, c), index i = r * stride + c.
+   Used by the normal loop and by update_tiles. always_inline: without it, Apple clang
+   made the normal loop about 13 % slower than when the rule was written inside it
+   (2048^2, 200 steps); with it the speed is the same as before. */
+static inline __attribute__((always_inline))
+void cell_update(const Sim *s, const uint8_t *old, uint8_t *new_, const int offset[8],
+                 int B, int r, int c, int i, uint64_t step)
+{
+    const Rules *rules = &s->rules;
+    uint8_t st = old[i];
+
+    if (st == STATE_BURNT) {
+        new_[i] = STATE_BURNT;
+    } else if (st >= 1) {                       /* burning */
+        new_[i] = (st >= B) ? STATE_BURNT : (uint8_t)(st + 1);
+    } else if (s->fuel[i] <= 0.0f) {
+        new_[i] = STATE_UNBURNT;                /* nothing here can burn */
+    } else {
+        float keep = 1.0f;                      /* chance of not catching fire */
+        int any = 0;
+        for (int d = 0; d < 8; d++) {
+            if (!is_burning(old[i + offset[d]], B))
+                continue;
+            any = 1;
+            float rise = s->elev[i] - s->elev[i + offset[d]];
+            float prob = rules->base * s->fuel[i] * rules->dir[d]
+                       * rules->slope[rules->diagonal[d]][slope_index(rise)];
+            if (prob > 1.0f) prob = 1.0f;
+            keep *= 1.0f - prob;
+        }
+        new_[i] = STATE_UNBURNT;
+        if (any) {
+            uint64_t cell = global_cell(s, r, c);
+            if (cell_uniform(s->p.seed, cell, step) < 1.0f - keep)
+                new_[i] = 1;
+        }
+    }
+}
+
+/* 1 if old_state has a burning cell in rows r0..r1, columns c0..c1 (local, may include
+   the border). Own cells are looked up per tile, which may say yes too often but never
+   too rarely; border cells (the halo from the neighbouring ranks) are read one by one. */
+static int burning_in(const Sim *s, int r0, int r1, int c0, int c1)
+{
+    const int T = s->p.skip_tiles, B = s->rules.burn_steps, stride = s->stride;
+    const int nx = s->d.nx, ny = s->d.ny;
+    const uint8_t *old = s->old_state;
+
+    int a = r0 < 1 ? 1 : r0, b = r1 > ny ? ny : r1;
+    int c = c0 < 1 ? 1 : c0, d = c1 > nx ? nx : c1;
+    for (int tr = (a - 1) / T; tr <= (b - 1) / T; tr++)
+        for (int tc = (c - 1) / T; tc <= (d - 1) / T; tc++)
+            if (s->tile_burning[tr * s->tiles_x + tc] > 0)
+                return 1;
+
+    if (r0 == 0 || r1 == ny + 1) {
+        for (int k = c0; k <= c1; k++)
+            if ((r0 == 0 && is_burning(old[k], B)) ||
+                (r1 == ny + 1 && is_burning(old[(ny + 1) * stride + k], B)))
+                return 1;
+    }
+    if (c0 == 0 || c1 == nx + 1) {
+        for (int k = r0; k <= r1; k++)
+            if ((c0 == 0 && is_burning(old[k * stride], B)) ||
+                (c1 == nx + 1 && is_burning(old[k * stride + nx + 1], B)))
+                return 1;
+    }
+    return 0;
+}
+
+/*
+ * update_block with --skip-tiles. A cell whose 3 x 3 neighbourhood has no burning cell
+ * keeps its state and draws no random number, so a tile part with no burning cell in it
+ * or on its one-cell rim gets new_state = old_state, and the result is bit for bit the
+ * same as without skipping. Such a part is copied from old_state, or not touched at all
+ * if both grids already agree on the tile (it was not computed in the previous step
+ * either). Tiles are handed out dynamically, because only the ones near the fire cost
+ * much, in chunks of up to 64: one tile at a time made 8 threads slower than one thread
+ * on 8192^2 (most tiles are skipped, so handing them out cost more than the work), and
+ * chunks of 64 and 512 were equally fast. With few tiles (large T or small blocks) the
+ * chunks get smaller, so that every thread still gets work. Each tile is handled by one
+ * thread, so the per-tile counters need no locks.
+ */
+static void update_tiles(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
+{
+    const int T = s->p.skip_tiles, B = s->rules.burn_steps, stride = s->stride;
+    const uint8_t *old = s->old_state;
+    uint8_t *new_ = s->new_state;
+
+    int offset[8];
+    for (int d = 0; d < 8; d++)
+        offset[d] = NB_DR[d] * stride + NB_DC[d];
+
+    const int tr0 = (r0 - 1) / T, tc0 = (c0 - 1) / T;
+    const int across = (c1 - 1) / T - tc0 + 1;
+    const int count = ((r1 - 1) / T - tr0 + 1) * across;
+
+#ifdef _OPENMP
+    /* chunks of up to 64 tiles, but at least about 8 chunks per thread when there are few tiles */
+    int chunk = count / (8 * omp_get_max_threads());
+    if (chunk > 64) chunk = 64;
+    if (chunk < 1) chunk = 1;
+#pragma omp parallel for schedule(dynamic, chunk)
+#endif
+    for (int k = 0; k < count; k++) {
+        int tr = tr0 + k / across, tc = tc0 + k % across;
+        int t = tr * s->tiles_x + tc;
+        int a = tr * T + 1, b = tr * T + T, c = tc * T + 1, d = tc * T + T;
+        if (a < r0) a = r0;
+        if (b > r1) b = r1;
+        if (c < c0) c = c0;
+        if (d > c1) d = c1;
+
+        if (!burning_in(s, a - 1, b + 1, c - 1, d + 1)) {
+            if (!s->tile_same[t])
+                for (int r = a; r <= b; r++)
+                    memcpy(new_ + r * stride + c, old + r * stride + c, (size_t)(d - c + 1));
+            continue;
+        }
+
+        int burning = 0;
+        for (int r = a; r <= b; r++) {
+            for (int col = c; col <= d; col++) {
+                int i = r * stride + col;
+                cell_update(s, old, new_, offset, B, r, col, i, step);
+                burning += is_burning(new_[i], B);
+            }
+        }
+        s->tile_burning_next[t] += burning;
+        s->tile_updated[t] = 1;
+    }
 }
 
 /*
@@ -160,11 +327,13 @@ static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
 {
     if (r0 > r1 || c0 > c1)
         return;
+    if (s->p.skip_tiles > 0) {
+        update_tiles(s, r0, r1, c0, c1, step);
+        return;
+    }
 
-    const Params *p = &s->p;
-    const Rules *rules = &s->rules;
     const int stride = s->stride;
-    const int B = rules->burn_steps;
+    const int B = s->rules.burn_steps;
     const uint8_t *old = s->old_state;
     uint8_t *new_ = s->new_state;
 
@@ -178,36 +347,38 @@ static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
     for (int r = r0; r <= r1; r++) {
         for (int c = c0; c <= c1; c++) {
             int i = r * stride + c;
-            uint8_t st = old[i];
-
-            if (st == STATE_BURNT) {
-                new_[i] = STATE_BURNT;
-            } else if (st >= 1) {                       /* burning */
-                new_[i] = (st >= B) ? STATE_BURNT : (uint8_t)(st + 1);
-            } else if (s->fuel[i] <= 0.0f) {
-                new_[i] = STATE_UNBURNT;                /* nothing here can burn */
-            } else {
-                float keep = 1.0f;                      /* chance of not catching fire */
-                int any = 0;
-                for (int d = 0; d < 8; d++) {
-                    if (!is_burning(old[i + offset[d]], B))
-                        continue;
-                    any = 1;
-                    float rise = s->elev[i] - s->elev[i + offset[d]];
-                    float prob = rules->base * s->fuel[i] * rules->dir[d]
-                               * rules->slope[rules->diagonal[d]][slope_index(rise)];
-                    if (prob > 1.0f) prob = 1.0f;
-                    keep *= 1.0f - prob;
-                }
-                new_[i] = STATE_UNBURNT;
-                if (any) {
-                    uint64_t cell = global_cell(s, r, c);
-                    if (cell_uniform(p->seed, cell, step) < 1.0f - keep)
-                        new_[i] = 1;
-                }
-            }
+            cell_update(s, old, new_, offset, B, r, c, i, step);
         }
     }
+}
+
+/* count the burning cells of every tile in old_state (first step only) */
+static void tiles_start(Sim *s)
+{
+    const int T = s->p.skip_tiles, B = s->rules.burn_steps;
+    memset(s->tile_burning, 0, (size_t)s->tiles_x * (size_t)s->tiles_y * sizeof(int));
+    for (int r = 1; r <= s->d.ny; r++)
+        for (int c = 1; c <= s->d.nx; c++)
+            if (is_burning(s->old_state[r * s->stride + c], B))
+                s->tile_burning[((r - 1) / T) * s->tiles_x + (c - 1) / T]++;
+    s->tiles_ready = 1;
+}
+
+/* after a step, before the grids swap: new_state becomes old_state */
+static void tiles_finish(Sim *s)
+{
+    int tiles = s->tiles_x * s->tiles_y;
+    long long updated = 0;
+    for (int t = 0; t < tiles; t++) {
+        /* a tile that was only copied or skipped is now the same in both grids */
+        s->tile_same[t] = !s->tile_updated[t];
+        updated += s->tile_updated[t];
+        s->tile_updated[t] = 0;
+        s->tile_burning[t] = s->tile_burning_next[t];
+        s->tile_burning_next[t] = 0;
+    }
+    s->tiles_updated += updated;
+    s->tiles_total += tiles;
 }
 
 static double step_seconds(const Sim *s)
@@ -271,6 +442,8 @@ static void step_overlap(Sim *s)
 void sim_step(Sim *s)
 {
     s->step++;
+    if (s->p.skip_tiles > 0 && !s->tiles_ready)
+        tiles_start(s);
 #ifdef USE_MPI
     if (s->p.overlap && s->d.size > 1) {
         step_overlap(s);
@@ -288,6 +461,8 @@ void sim_step(Sim *s)
             s->t_interior += compute; /* one rank has no incoming halos */
     }
 
+    if (s->p.skip_tiles > 0)
+        tiles_finish(s);   /* counted in t_total, not in t_compute */
     uint8_t *tmp = s->old_state;
     s->old_state = s->new_state;
     s->new_state = tmp;
@@ -303,6 +478,13 @@ void sim_reset_times(Sim *s)
     s->t_halo = 0.0;
     s->t_compute = 0.0;
     s->t_post = s->t_wait = s->t_interior = s->t_boundary = 0.0;
+    s->tiles_updated = s->tiles_total = 0;
+}
+
+void sim_tile_counts(const Sim *s, long long *updated, long long *total)
+{
+    *updated = s->tiles_updated;
+    *total = s->tiles_total;
 }
 
 void sim_overlap_times(const Sim *s, double times[4])
