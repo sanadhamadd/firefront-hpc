@@ -44,6 +44,26 @@ void halo_exchange(const Halo *h, const Decomp *d, uint8_t *grid)
     }
 }
 
+void halo_post_rows(const Decomp *d, uint8_t *grid, MPI_Request requests[HALO_REQUESTS])
+{
+    int stride = d->nx + 2;
+    MPI_Irecv(&grid[1], d->nx, MPI_UNSIGNED_CHAR, d->north, TAG_TO_SOUTH, d->comm, &requests[0]);
+    MPI_Irecv(&grid[(d->ny + 1) * stride + 1], d->nx, MPI_UNSIGNED_CHAR, d->south, TAG_TO_NORTH,
+              d->comm, &requests[1]);
+    MPI_Isend(&grid[stride + 1], d->nx, MPI_UNSIGNED_CHAR, d->north, TAG_TO_NORTH, d->comm, &requests[2]);
+    MPI_Isend(&grid[d->ny * stride + 1], d->nx, MPI_UNSIGNED_CHAR, d->south, TAG_TO_SOUTH,
+              d->comm, &requests[3]);
+}
+
+void halo_post_columns(const Halo *h, const Decomp *d, uint8_t *grid,
+                       MPI_Request requests[HALO_REQUESTS])
+{
+    MPI_Irecv(&grid[0], 1, h->column, d->west, TAG_TO_EAST, d->comm, &requests[0]);
+    MPI_Irecv(&grid[d->nx + 1], 1, h->column, d->east, TAG_TO_WEST, d->comm, &requests[1]);
+    MPI_Isend(&grid[1], 1, h->column, d->west, TAG_TO_WEST, d->comm, &requests[2]);
+    MPI_Isend(&grid[d->nx], 1, h->column, d->east, TAG_TO_EAST, d->comm, &requests[3]);
+}
+
 #else
 
 void halo_init(Halo *h, const Decomp *d)

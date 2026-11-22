@@ -30,6 +30,7 @@ void params_defaults(Params *p)
     p->ignitions = 1;
     p->decomp = DECOMP_BLOCKS;
     p->overlap = 0;
+    p->verify_only = 0;
 }
 
 static void usage(const char *prog)
@@ -48,7 +49,8 @@ static void usage(const char *prog)
     printf("  --ignitions N         number of fire starts; N > 1 places them from the seed, off the river (default 1)\n");
     printf("  --river 0|1           firebreak column in the landscape (default 1)\n");
     printf("  --decomp strips|blocks  how the MPI version splits the grid (default blocks; ignored without MPI)\n");
-    printf("  --overlap 0|1         overlap the halo exchange with computation (default 0; 1 is not implemented yet)\n");
+    printf("  --overlap 0|1         overlap the MPI halo exchange with computation (default 0)\n");
+    printf("  --verify-only         print the final checksum without collecting timings\n");
     printf("  --report-every N      print a progress line every N steps\n");
     printf("  --snapshot FILE       write the final state as a PGM image\n");
     printf("  --help\n");
@@ -66,6 +68,10 @@ int params_parse(Params *p, int argc, char **argv)
         if (is_option(a, "--help") || is_option(a, "-h")) {
             usage(argv[0]);
             return 1;
+        }
+        if (is_option(a, "--verify-only")) {
+            p->verify_only = 1;
+            continue;
         }
         if (i + 1 >= argc) {
             fprintf(stderr, "missing value for %s\n", a);
@@ -124,10 +130,12 @@ int params_parse(Params *p, int argc, char **argv)
         fprintf(stderr, "--overlap must be 0 or 1\n");
         return 1;
     }
+#ifndef USE_MPI
     if (p->overlap == 1) {
-        fprintf(stderr, "--overlap 1 is not implemented yet; use --overlap 0 (blocking halo exchange)\n");
+        fprintf(stderr, "--overlap 1 requires the MPI build\n");
         return 1;
     }
+#endif
     if (p->ignitions < 1) {
         fprintf(stderr, "--ignitions must be at least 1\n");
         return 1;

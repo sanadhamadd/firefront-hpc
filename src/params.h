@@ -23,7 +23,8 @@ typedef struct {
     const char *snapshot;       /* write the final state as a PGM image, or NULL */
     int ignitions;              /* number of 3 x 3 ignition patches; > 1 = placed from the seed */
     int decomp;                 /* MPI split: DECOMP_STRIPS or DECOMP_BLOCKS (see decomp.h) */
-    int overlap;                /* 1 = overlap halo exchange and computation (not implemented yet) */
+    int overlap;                /* 1 = overlap MPI halo exchange and computation */
+    int verify_only;            /* print the checksum without collecting timings */
 } Params;
 
 void params_defaults(Params *p);

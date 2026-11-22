@@ -19,6 +19,8 @@ int sim_steps_done(const Sim *s);
    since the last sim_reset_times (seconds) */
 void sim_reset_times(Sim *s);
 void sim_times(const Sim *s, double *t_halo, double *t_compute);
+/* Local overlap phase totals in order: posting, waiting, interior, boundary. */
+void sim_overlap_times(const Sim *s, double times[4]);
 
 /* process grid: px columns x py rows of ranks (1 x 1 without MPI) */
 void sim_rank_grid(const Sim *s, int *px, int *py);
