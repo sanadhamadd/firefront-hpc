@@ -1,0 +1,44 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI settings: OMPI_MCA_btl=self,vader,tcp OMPI_MCA_btl_vader_backing_directory=/tmp OMPI_MCA_hwloc_base_use_hwthreads_as_cpus=1 OMPI_MCA_plm_slurm_args=--external-launcher OMPI_MCA_pml=ob1 
+rep=1 tile=32 decomp=blocks ranks=32 nodes=2 nodelist=haskell,julia
+== node state (start) ==
+node: haskell
+time: 2026-11-22T17:25:56+01:00
+load: 18.23 11.01 10.71 17/7522 108437
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     30769        cpu  other  R   18:14:07      4       8G julia
+     35409        cpu   self  R       0:02     64       8G haskell,julia
+     35425        cpu  other  R       0:41      4       4G haskell
+     32961        gpu  other  R 1-12:33:21     64     256G julia
+     35411 interactive  other  R       6:26      2       4G haskell
+     35352 interactive  other  R      41:45      2       4G haskell
+== resources of this job ==
+cpus usable: 0-15,256-271
+physcpubind: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=32,mem=16G,node=2,billing=32
+TRES=cpu=64,mem=16G,node=2,billing=64
+== run: 32 ranks, --skip-tiles 0 ==
+command: srun --cpu-bind=cores ./build/firefront_mpi --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0 --skip-tiles 0
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 rank(s) on 2 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=32 threads=1 t_total=2.6541 cells_per_s=9.861e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=dd8ea11 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=2 decomp=blocks px=4 py=8 overlap=0 t_halo=0.5698 t_compute=2.3471 t_reduce=0.0391 imbalance=1.107 skip_tiles=0 active_tiles=1.0000
+checksum ok
+== run: 32 ranks, --skip-tiles 32 ==
+command: srun --cpu-bind=cores ./build/firefront_mpi --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0 --skip-tiles 32
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 rank(s) on 2 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=32 threads=1 t_total=0.6470 cells_per_s=4.045e+10 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=dd8ea11 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=2 decomp=blocks px=4 py=8 overlap=0 t_halo=0.6235 t_compute=0.1377 t_reduce=0.0479 imbalance=3.203 skip_tiles=32 active_tiles=0.0111
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-22T17:26:03+01:00
+load: 19.34 11.35 10.83 17/7526 108848
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     30769        cpu  other  R   18:14:14      4       8G julia
+     35409        cpu   self  R       0:09     64       8G haskell,julia
+     35425        cpu  other  R       0:48      4       4G haskell
+     32961        gpu  other  R 1-12:33:28     64     256G julia
+     35411 interactive  other  R       6:33      2       4G haskell
+     35352 interactive  other  R      41:52      2       4G haskell

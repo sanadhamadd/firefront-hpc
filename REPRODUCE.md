@@ -27,7 +27,7 @@ Every `RESULT` line records the commit the binary was built from (`commit=`), so
 | E5 (MPI decomposition, MPI part of E2) | `76eff8c` (submitted from `674dab1`) | |
 | E3, E4 (hybrid, weak scaling) | `ce2e211` | tag `v0.3-mpi` |
 | E7 (overlap), E9 (timers) | `4bf2cd1` | branch `khadija/e7-overlap-profiling`, merged in `0edabc4` |
-| E8 (kernel optimisation: tile skipping) | branch `alicia/report-reproduce` | commit to be filled in after the cluster runs |
+| E8 (kernel optimisation: tile skipping) | `dd8ea11` | merge of PR #5; build job 35387 |
 | E10 (GPU) | to be added | phase 3c |
 
 To rerun one experiment exactly, check out its commit (`git checkout ce2e211`) before building. To rerun everything with the current code, build `main`; the checksums must not change.
@@ -160,6 +160,10 @@ Each `RESULT` line ends with `skip_tiles=` and `active_tiles=` (share of tile up
 
 This writes `e8_summary.csv`, `e8_before_after.png`, `e8_tile_size.png` and `e8_mpi_balance.png`. `tools/make_plots.py` leaves E8 runs out of the E1/E2 figures.
 
+Run on 22 Nov 2026 from `dd8ea11` (build job 35387, `all checks passed` and `all MPI checks passed`): serial/OpenMP jobs 35403–35405, MPI jobs 35406–35428 (12 jobs). All 63 runs gave `0xb8683c550fa95bd6`. The serial/OpenMP jobs got cores 0–31 (four whole 8-core chiplets) on a quiet node; E2 had cores 14–45 with other jobs on the node, which is why the 32-thread run without skipping is faster here (2.36 s) than in E2 (3.24 s). Compare E8 before/after only within E8.
+
+Note: the build job now runs about 11–12 minutes because `make test-mpi` also checks `--skip-tiles`; submit it with `sbatch --time=00:20:00 slurm/build.sbatch` until PR #6 (20-minute limit in the script) is merged.
+
 ### E10 – GPU port (CUDA, OpenACC)
 
 To be added with the GPU code (`slurm/gpu.sbatch` is the template).
@@ -182,10 +186,10 @@ This needs only Python and the repository; no cluster. Write into a new director
 | E6 figure | `results/figures/mcups_vs_grid_size.png` | `make_plots.py` |
 | E5 table and figures | `results/tables/e5_summary.csv`, `results/figures/e5_*.png` | `plot_e5.py` |
 | E3, E4 tables and figures | `results/tables/e{3,4}_final{,_runs}.csv`, `results/figures/e{3,4}_report.{png,pdf}` | `plot_phase3a.py --report` (output files are named `e3.csv`, `e3_runs.csv`, …) |
-| E8 table and figures | `results/tables/e8_summary.csv`, `results/figures/e8_*.png` | `plot_e8.py` (after the cluster runs) |
+| E8 table and figures | `results/tables/e8_summary.csv`, `results/figures/e8_*.png` | `plot_e8.py` |
 | E7 tables and figures | `results/tables/e7_{runs,summary}.csv`, `results/figures/e7_*.svg` | `python tools/analyze_e7.py results/raw/e7-e9` (needs the E7 logs, see below) |
 
-Checked on 22 Nov 2026: `e5_summary.csv`, `e3_final*.csv` and `e4_final*.csv` come out identical. `all.csv` comes out with the same rows as the committed file plus the 30 E3/E4 (`hybrid_*`) runs, which the committed copy predates.
+Checked on 22 Nov 2026: `all.csv`, `e5_summary.csv`, `e3_final*.csv`, `e4_final*.csv` and `e8_summary.csv` come out identical to the committed files. (`all.csv` was regenerated on 22 Nov with the E3/E4 and E8 runs; the E2 figures committed earlier were made before the E3/E4 rows existed, so `make_plots.py` on today's `all.csv` adds those MPI runs as extra series.)
 
 **Missing:** the raw E7 logs (`results/raw/e7-e9/`) are not in the repository yet, so the E7 table can only be checked against `results/tables/e7_runs.csv` (72 runs, job id in every row).
 
