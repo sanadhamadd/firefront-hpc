@@ -158,6 +158,7 @@ flowchart LR
 | `--snapshot FILE` | none (grey-scale PGM of the final state) |
 | `--decomp strips\|blocks` | blocks (MPI only: how the grid is split over the ranks) |
 | `--overlap 0\|1` | 0 (1 = overlap halo exchange and computation, not implemented yet) |
+| `--skip-tiles N` | 0 = off; N > 0 skips N × N tiles with no fire nearby (E8, same checksum) |
 
 `--help` prints this list. Each run prints one `RESULT` line; the `checksum` field must be the same for every version with the same options. See [REPRODUCE.md](REPRODUCE.md) for the cluster experiments.
 

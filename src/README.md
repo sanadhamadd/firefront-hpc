@@ -32,6 +32,8 @@ Appended after `humidity`, so older logs and `tools/parse_logs.py` keep working:
 | `t_compute`, `t_reduce` | time updating cells and time in the periodic counts and reductions |
 | `imbalance` | slowest rank's `t_compute` divided by the average one (1 = even) |
 | `t_post`, `t_wait`, `t_interior`, `t_boundary` | overlap-only fields for request posting, completion calls, interior and boundary updates |
+| `skip_tiles` | E8: tile edge T of `--skip-tiles T` (0 = every cell is updated); printed by every build |
+| `active_tiles` | E8: share of the tile updates that were computed, over all ranks and timed steps (1 with `skip_tiles=0`) |
 
 `t_total` is the slowest rank's time after the warm-up barrier. Each phase is
 summed locally over the timed steps and then maximized across ranks. The maxima

@@ -31,6 +31,7 @@ void params_defaults(Params *p)
     p->decomp = DECOMP_BLOCKS;
     p->overlap = 0;
     p->verify_only = 0;
+    p->skip_tiles = 0;
 }
 
 static void usage(const char *prog)
@@ -50,6 +51,7 @@ static void usage(const char *prog)
     printf("  --river 0|1           firebreak column in the landscape (default 1)\n");
     printf("  --decomp strips|blocks  how the MPI version splits the grid (default blocks; ignored without MPI)\n");
     printf("  --overlap 0|1         overlap the MPI halo exchange with computation (default 0)\n");
+    printf("  --skip-tiles N        skip N x N tiles with no fire nearby; same result, less work (default 0 = off)\n");
     printf("  --verify-only         print the final checksum without collecting timings\n");
     printf("  --report-every N      print a progress line every N steps\n");
     printf("  --snapshot FILE       write the final state as a PGM image\n");
@@ -94,6 +96,7 @@ int params_parse(Params *p, int argc, char **argv)
         else if (is_option(a, "--snapshot"))     p->snapshot = v;
         else if (is_option(a, "--ignitions"))    p->ignitions = atoi(v);
         else if (is_option(a, "--overlap"))      p->overlap = atoi(v);
+        else if (is_option(a, "--skip-tiles"))   p->skip_tiles = atoi(v);
         else if (is_option(a, "--decomp")) {
             if (strcmp(v, "strips") == 0)      p->decomp = DECOMP_STRIPS;
             else if (strcmp(v, "blocks") == 0) p->decomp = DECOMP_BLOCKS;
@@ -136,6 +139,10 @@ int params_parse(Params *p, int argc, char **argv)
         return 1;
     }
 #endif
+    if (p->skip_tiles < 0 || p->skip_tiles > 65536) {
+        fprintf(stderr, "--skip-tiles must be between 0 (off) and 65536\n");
+        return 1;
+    }
     if (p->ignitions < 1) {
         fprintf(stderr, "--ignitions must be at least 1\n");
         return 1;
