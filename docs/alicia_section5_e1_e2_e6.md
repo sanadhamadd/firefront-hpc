@@ -1,0 +1,17 @@
+## 5. Results – part 1: baseline, thread scaling and grid size (E1, E2, E6)
+
+Draft by Alicia: input for Alejandro, who owns §5 and puts it together with his E3/E4 part (`docs/alejandro_section5_results.md`) and Sanad's E5 part. Target ≈ 0.5 page. Source: `results/tables/all.csv` (E1/E2 commit `610e539`, size sweep `7c686c8`); median of 3 jobs, min–max in brackets. All 24 E1/E2 runs and all 24 sweep runs gave the reference checksum.
+
+**Baseline (E1).** The serial program needs **81.95 s** (80.69–82.11 s) for the 8192² grid, i.e. 3.13 ns or about 320 million cell updates per second (MCUPS). All speed-ups in this report are relative to this time.
+
+**OpenMP strong scaling (E2).** With one thread per physical core on one socket, the time falls from 87.14 s on one thread to **3.24 s on 32 threads (3.23–3.25 s)**: a speed-up of 25.3 and an efficiency of **0.79**, above our 60 % target. Efficiency is 0.85 at 2–4 threads, 0.81 at 8 and 0.80 at 16, so it declines gradually rather than collapsing at one point. Part of the loss is fixed: one OpenMP thread is already 6 % slower than the serial code (87.14 vs 81.95 s), probably the overhead of the OpenMP loop and a different compiled loop. Running 64 threads on the same 32 cores (two per core, hyper-threading) is 8 % *slower* (3.50 s), so a second thread per core does not hide any latency in this kernel.
+
+*Place Figure here:* `results/figures/speedup_vs_cores.png`. **Caption.** OpenMP speed-up against serial E1 on 1–32 physical cores (median of 3, bars min–max), with ideal scaling and the 60 % target. The star is 64 threads on 32 cores.
+
+**Memory bandwidth (STREAM).** The STREAM triad reaches **68.0 GB/s** on our 32 cores. Bandwidth grows in steps: an 8-core chiplet gives about 28 GB/s, and it only rises when the threads spread onto a new chiplet (in one series 1–8 threads stayed at 27–28 GB/s, then 47.9 GB/s at 16 and 66.8 GB/s at 32). At 32 threads our kernel performs 8,088 MCUPS. With about 6 bytes of memory traffic per update (section 2) that is 48.5 GB/s, **71 % of the STREAM bandwidth**.
+
+**Grid size (E6).** At 32 threads, throughput is almost the same at every grid size: 8,129, 8,179, 7,811 and 7,988 MCUPS for 2048², 4096², 8192² and 16384² (all within ±2.5 %). The 2048² grid (25 MB per step) fits in the L3 caches of our four chiplets; the 16384² grid streams 1.6 GB per step from memory. If memory bandwidth limited the kernel, the small grids would be clearly faster. A second pass with `--humidity 1`, where the fire cannot spread and every cell does the same work, gives the same picture (8,036–8,157 MCUPS).
+
+*Place Figure here:* `results/figures/mcups_vs_grid_size.png`. **Caption.** Throughput at 32 threads against grid size, with and without fire spread; dashed line: memory-bandwidth limit (STREAM / 6 B per update).
+
+**What this means.** At 32 cores in one socket the cell update is limited by **computation, not memory bandwidth**: the throughput does not depend on whether the data is in cache, and it stays at 71 % of the bandwidth limit. This refutes our first planning assumption (memory-bound thread scaling) and supports the proposal's hypothesis that the per-cell neighbour checks dominate. Why efficiency drops to 0.79 is not settled by these runs. A lower clock frequency when all cores are busy is a likely cause, but it needs counter data (section 6). Because the kernel is compute-bound, the next speed-ups would come from doing less work per cell (section 9), not from better memory access.
