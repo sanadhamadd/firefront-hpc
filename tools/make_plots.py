@@ -267,6 +267,12 @@ def main():
     # node than E2, so it is kept out of the core-scaling figures
     if "file" in df:
         df = df[~df.file.astype(str).str.startswith("size_sweep_")]
+    # E8 tile-skipping runs (e8_*.out, skip_tiles > 0) do different work per cell, so
+    # they would distort the E1/E2 medians; tools/plot_e8.py plots them
+    if "file" in df:
+        df = df[~df.file.astype(str).str.startswith("e8_")]
+    if "skip_tiles" in df:
+        df = df[pd.to_numeric(df.skip_tiles, errors="coerce").fillna(0) == 0]
     s = add_speedup(summarise(df))
     styles = series_style(s)
     no_serial = s[s.variant != "serial"]   # serial is the reference, not a curve
