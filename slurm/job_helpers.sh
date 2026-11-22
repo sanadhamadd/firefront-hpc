@@ -37,6 +37,7 @@ job_resources() {
     if command -v scontrol >/dev/null 2>&1; then
         scontrol show job "$SLURM_JOB_ID" 2>/dev/null | grep -oE 'NumCPUs=[0-9]+|TRES=[^ ]+'
     fi
+    return 0
 }
 
 # Run a command. While it runs, take "numastat -p" of it every second and keep the
