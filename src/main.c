@@ -238,6 +238,12 @@ int main(int argc, char **argv)
         MPI_Reduce(phases, phase_max, 4, MPI_DOUBLE, MPI_MAX, 0, MPI_COMM_WORLD);
     }
 #endif
+    long long tiles_updated_mine, tiles_total_mine;
+    sim_tile_counts(sim, &tiles_updated_mine, &tiles_total_mine);
+    double tiles_updated, tiles_total, ignored;
+    max_and_sum((double)tiles_updated_mine, &ignored, &tiles_updated);
+    max_and_sum((double)tiles_total_mine, &ignored, &tiles_total);
+
     /* how much longer the slowest rank computes than the average one (1 = even) */
     double imbalance = (t_compute_sum > 0.0) ? t_compute / (t_compute_sum / ranks) : 1.0;
 
@@ -268,6 +274,9 @@ int main(int argc, char **argv)
             printf(" t_post=%.4f t_wait=%.4f t_interior=%.4f t_boundary=%.4f",
                    phase_max[0], phase_max[1], phase_max[2], phase_max[3]);
 #endif
+        /* E8: tile edge (0 = off) and the share of tile updates that were computed */
+        printf(" skip_tiles=%d active_tiles=%.4f", p.skip_tiles,
+               tiles_total > 0.0 ? tiles_updated / tiles_total : 1.0);
         putchar('\n');
     }
 

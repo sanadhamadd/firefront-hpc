@@ -25,6 +25,7 @@ typedef struct {
     int decomp;                 /* MPI split: DECOMP_STRIPS or DECOMP_BLOCKS (see decomp.h) */
     int overlap;                /* 1 = overlap MPI halo exchange and computation */
     int verify_only;            /* print the checksum without collecting timings */
+    int skip_tiles;             /* > 0: skip N x N tiles with no fire nearby (E8); 0 = update every cell */
 } Params;
 
 void params_defaults(Params *p);

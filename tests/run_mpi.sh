@@ -42,11 +42,13 @@ for args in "${cases[@]}"; do
     for np in $RANKS; do
         for decomp in strips blocks; do
             for overlap in 0 1; do
-                got=$($MPIRUN -np $np build/firefront_mpi $args --decomp $decomp --overlap $overlap | checksum) || fail=1
-                if [ -z "$want" ] || [ "$got" != "$want" ]; then
-                    echo "FAIL: $np rank(s), $decomp, overlap=$overlap, $args: $got, serial $want"
-                    fail=1
-                fi
+                for skip in 0 5; do   # 5: E8 tile skipping, tiles that do not divide the blocks
+                    got=$($MPIRUN -np $np build/firefront_mpi $args --decomp $decomp --overlap $overlap --skip-tiles $skip | checksum) || fail=1
+                    if [ -z "$want" ] || [ "$got" != "$want" ]; then
+                        echo "FAIL: $np rank(s), $decomp, overlap=$overlap, skip-tiles=$skip, $args: $got, serial $want"
+                        fail=1
+                    fi
+                done
             done
         done
     done
@@ -57,8 +59,10 @@ done
 args="--nx 203 --ny 157 --steps 150 --ignitions 7"
 want=$(build/firefront_serial $args | checksum)
 for overlap in 0 1; do
-    got=$(OMP_NUM_THREADS=2 $MPIRUN -np 2 build/firefront_mpi $args --overlap $overlap | checksum) || fail=1
-    if [ -n "$want" ] && [ "$got" = "$want" ]; then echo "ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=$overlap"; else echo "FAIL: 2 ranks x 2 threads: $got, serial $want"; fail=1; fi
+    for skip in 0 8; do
+        got=$(OMP_NUM_THREADS=2 $MPIRUN -np 2 build/firefront_mpi $args --overlap $overlap --skip-tiles $skip | checksum) || fail=1
+        if [ -n "$want" ] && [ "$got" = "$want" ]; then echo "ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=$overlap, skip-tiles=$skip"; else echo "FAIL: 2 ranks x 2 threads, skip-tiles=$skip: $got, serial $want"; fail=1; fi
+    done
 done
 
 # snapshot: the picture rank 0 puts together must be the same file as the serial one

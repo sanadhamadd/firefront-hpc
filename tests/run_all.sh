@@ -18,6 +18,9 @@ check() {
 checksum() {
     "$bin" "$@" | grep '^RESULT' | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/'
 }
+checksum_of_line() {
+    grep '^RESULT' | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/'
+}
 
 args="--nx 200 --ny 150 --steps 120 --seed 7"
 
@@ -56,6 +59,27 @@ check "verification emits only the checksum record" "VERIFY checksum=0x74cfadfb7
 h=$("$bin" --nx 64 --ny 64 --steps 5 --humidity 0.4 | grep '^RESULT' | sed 's/.* humidity=\([^ ]*\).*/\1/')
 check "RESULT line reports the humidity used" "0.4" "$h"
 
+# E8 tile skipping must not change the result: tile sizes that do and do not divide the
+# grid, one-cell tiles, a tile larger than the grid, and a fire that starts at the edge
+skip_cases=(
+    "--nx 1024 --ny 1024 --steps 100"
+    "--nx 203 --ny 157 --steps 150 --ignitions 7"
+    "--nx 120 --ny 90 --steps 300 --river 0 --ignite 0,0 --humidity 0"
+    "--nx 333 --ny 211 --steps 250 --ignitions 12 --burn-steps 7 --seed 11"
+)
+for sargs in "${skip_cases[@]}"; do
+    want=$(checksum $sargs)
+    same=1
+    for t in 1 5 64 5000; do
+        got=$(checksum $sargs --skip-tiles $t)
+        if [ "$got" != "$want" ]; then echo "FAIL: --skip-tiles $t, $sargs: $got vs $want"; same=0; fail=1; fi
+    done
+    [ $same -eq 1 ] && echo "ok:   --skip-tiles 1, 5, 64, 5000 give the same checksum ($sargs)"
+done
+if "$bin" --skip-tiles -1 >/dev/null 2>&1; then echo "FAIL: --skip-tiles -1 was accepted"; fail=1; else echo "ok:   --skip-tiles -1 is rejected"; fi
+a_off=$("$bin" --nx 64 --ny 64 --steps 5 | grep '^RESULT' | sed 's/.* skip_tiles=\([0-9]*\) active_tiles=\([0-9.]*\).*/\1 \2/')
+check "RESULT line reports skip_tiles=0 and active_tiles=1 by default" "0 1.0000" "$a_off"
+
 # OpenMP must give the serial checksum for any number of threads.
 # The compiler comes from OMP_CC (default gcc); -B rebuilds so the binary really comes from it.
 omp_cc=${OMP_CC:-gcc}
@@ -68,6 +92,8 @@ if make -B CC="$omp_cc" omp >/dev/null 2>&1; then
         omp=$(echo "$line" | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/')
         check "OpenMP ($omp_cc) runs with $t thread(s)" "$t" "$threads"
         check "OpenMP with $t thread(s) gives the serial checksum" "$serial" "$omp"
+        skip=$(OMP_NUM_THREADS=$t build/firefront_omp $omp_args --skip-tiles 32 | checksum_of_line)
+        check "OpenMP with $t thread(s) and --skip-tiles 32 gives the serial checksum" "$serial" "$skip"
     done
 else
     echo "skipped: OpenMP checksum test ($omp_cc cannot build with -fopenmp; set OMP_CC, e.g. OMP_CC=gcc-16)"
