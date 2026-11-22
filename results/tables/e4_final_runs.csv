@@ -1,0 +1,13 @@
+experiment,nx,ny,steps,nodes,ranks,threads,decomp,overlap,humidity,commit,nodelist,job,rep,t_total,cells_per_s,checksum,t_halo,source
+e4,1024,1024,400,1,1,1,blocks,0,0.2,ce2e211,haskell,34365,1,1.1203,3.650e+08,0xb39df2bfa77c7533,0.0000,hybrid_34365.out
+e4,1024,1024,400,1,1,1,blocks,0,0.2,ce2e211,haskell,34369,2,1.3164,3.107e+08,0xb39df2bfa77c7533,0.0000,hybrid_34369.out
+e4,1024,1024,400,1,1,1,blocks,0,0.2,ce2e211,haskell,34375,3,1.0961,3.731e+08,0xb39df2bfa77c7533,0.0000,hybrid_34375.out
+e4,2048,2048,400,1,1,4,blocks,0,0.2,ce2e211,haskell,34366,1,1.2530,1.305e+09,0x1e4d26aa8b648d29,0.0000,hybrid_34366.out
+e4,2048,2048,400,1,1,4,blocks,0,0.2,ce2e211,haskell,34370,2,1.2904,1.268e+09,0x1e4d26aa8b648d29,0.0000,hybrid_34370.out
+e4,2048,2048,400,1,1,4,blocks,0,0.2,ce2e211,haskell,34378,3,1.2890,1.269e+09,0x1e4d26aa8b648d29,0.0000,hybrid_34378.out
+e4,4096,4096,400,1,4,4,blocks,0,0.2,ce2e211,haskell,34367,1,1.4062,4.653e+09,0xff3f3d77c7394ba4,0.1137,hybrid_34367.out
+e4,4096,4096,400,1,4,4,blocks,0,0.2,ce2e211,haskell,34372,2,2.0908,3.129e+09,0xff3f3d77c7394ba4,0.7605,hybrid_34372.out
+e4,4096,4096,400,1,4,4,blocks,0,0.2,ce2e211,haskell,34379,3,1.3376,4.892e+09,0xff3f3d77c7394ba4,0.1345,hybrid_34379.out
+e4,8192,4096,400,2,8,4,blocks,0,0.2,ce2e211,"haskell,julia",34368,1,1.8952,6.905e+09,0x2b5710ec01ab7817,0.5945,hybrid_34368.out
+e4,8192,4096,400,2,8,4,blocks,0,0.2,ce2e211,"haskell,julia",34373,2,2.5046,5.225e+09,0x2b5710ec01ab7817,1.1723,hybrid_34373.out
+e4,8192,4096,400,2,8,4,blocks,0,0.2,ce2e211,"haskell,julia",34382,3,1.8667,7.010e+09,0x2b5710ec01ab7817,0.5840,hybrid_34382.out

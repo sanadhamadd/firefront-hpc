@@ -1,0 +1,94 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=2 experiment=e3 nx=8192 ny=8192 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T20:16:00+01:00
+load: 9.09 3.69 3.69 2/7486 3012254
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34292        cpu   self  R       0:01     64       4G haskell,julia
+     32961        gpu  other  R   15:23:25     64     256G julia
+     33855 interactive  other  R    7:03:09      4      16G julia
+     34110 interactive  other  R    1:55:11      4      16G julia
+     34056 interactive  other  R    2:27:30      2       4G haskell
+     34201 interactive  other  R      49:12      2       4G haskell
+     34220 interactive  other  R      34:15      2       4G haskell
+     34003 interactive  other  R    3:35:53      2       4G julia
+     34245 interactive  other  R      22:21      2       4G haskell
+== resources of this job ==
+cpus usable: 4-19,260-275
+physcpubind: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=32,mem=8G,node=2,billing=32
+TRES=cpu=64,mem=8G,node=2,billing=64
+decomp=blocks ranks=16 threads=2 nodes=2 nodelist=haskell,julia
+serial checksum: 0xb8683c550fa95bd6
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - haskell, task  0  0 [3012343]: mask 0x300000000000000000000000000000000000000000000000000000000000000030 set
+cpu-bind=MASK - haskell, task  1  1 [3012344]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c0 set
+cpu-bind=MASK - haskell, task  2  2 [3012345]: mask 0x3000000000000000000000000000000000000000000000000000000000000000300 set
+cpu-bind=MASK - haskell, task  3  3 [3012346]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c00 set
+cpu-bind=MASK - haskell, task  4  4 [3012347]: mask 0x30000000000000000000000000000000000000000000000000000000000000003000 set
+cpu-bind=MASK - haskell, task  5  5 [3012348]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c000 set
+cpu-bind=MASK - haskell, task  6  6 [3012349]: mask 0x300000000000000000000000000000000000000000000000000000000000000030000 set
+cpu-bind=MASK - haskell, task  7  7 [3012350]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c0000 set
+cpu-bind=MASK - julia, task  8  0 [2362235]: mask 0x3000000000000000000000000000000000000000000000000000000000000000300000000 set
+cpu-bind=MASK - julia, task  9  1 [2362236]: mask 0x28000000000000000000000000000000000000000000000000000000000000002800000000 set
+cpu-bind=MASK - julia, task 10  2 [2362237]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c000000000 set
+cpu-bind=MASK - julia, task 11  3 [2362238]: mask 0x300000000000000000000000000000000000000000000000000000000000000030000000000 set
+cpu-bind=MASK - julia, task 12  4 [2362239]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c0000000000 set
+cpu-bind=MASK - julia, task 13  5 [2362240]: mask 0x3000000000000000000000000000000000000000000000000000000000000000300000000000 set
+cpu-bind=MASK - julia, task 14  6 [2362241]: mask 0x24000000000000000000000000000000000000000000000000000000000000002400000000000 set
+cpu-bind=MASK - julia, task 15  7 [2362242]: mask 0xc000000000000000000000000000000000000000000000000000000000000000c000000000000 set
+level 1 thread 0x71dec8c7d780 affinity 8,264
+level 1 thread 0x71dec30166c0 affinity 9,265
+level 1 thread 0x7f27e555d780 affinity 14,270
+level 1 thread 0x7f27df8f66c0 affinity 15,271
+level 1 thread 0x749d20bf9780 affinity 4,260
+level 1 thread 0x749d1af8c6c0 affinity 5,261
+level 1 thread 0x727a772e2780 affinity 35,291
+level 1 thread 0x727a7570e6c0 affinity 37,293
+level 1 thread 0x76ecf16a2780 affinity 6,262
+level 1 thread 0x76eceba386c0 affinity 7,263
+level 1 thread 0x76ae73a0a780 affinity 38,294
+level 1 thread 0x76ae71e366c0 affinity 39,295
+level 1 thread 0x708759937780 affinity 10,266
+level 1 thread 0x708753cd16c0 affinity 11,267
+level 1 thread 0x7b2575979780 affinity 40,296
+level 1 thread 0x7b256fda16c0 affinity 41,297
+level 1 thread 0x71132eb57780 affinity 12,268
+level 1 thread 0x71132cef16c0 affinity 13,269
+level 1 thread 0x736ccab1e780 affinity 32,288
+level 1 thread 0x736cc8f4a6c0 affinity 33,289
+level 1 thread 0x7407babbb780 affinity 16,272
+level 1 thread 0x7407b8f556c0 affinity 17,273
+level 1 thread 0x776c29089780 affinity 42,298
+level 1 thread 0x776c234b56c0 affinity 43,299
+level 1 thread 0x763158bfb780 affinity 18,274
+level 1 thread 0x763152f8d6c0 affinity 19,275
+level 1 thread 0x76ebb80f0780 affinity 44,300
+level 1 thread 0x76ebb651c6c0 affinity 45,301
+level 1 thread 0x7aa623996780 affinity 46,302
+level 1 thread 0x7aa621dc26c0 affinity 49,305
+level 1 thread 0x7406bd96b780 affinity 50,306
+level 1 thread 0x7406b7d8b6c0 affinity 51,307
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 16 rank(s) on 2 node(s), 2 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=16 threads=2 t_total=3.2003 cells_per_s=8.178e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=2 decomp=blocks px=4 py=4 overlap=0 t_halo=0.8332 t_compute=2.7018 t_reduce=0.0359 imbalance=1.074
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T20:16:05+01:00
+load: 9.64 3.89 3.76 1/7500 3012464
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34292        cpu   self  R       0:06     64       4G haskell,julia
+     32961        gpu  other  R   15:23:30     64     256G julia
+     33855 interactive  other  R    7:03:14      4      16G julia
+     34110 interactive  other  R    1:55:16      4      16G julia
+     34056 interactive  other  R    2:27:35      2       4G haskell
+     34201 interactive  other  R      49:17      2       4G haskell
+     34220 interactive  other  R      34:20      2       4G haskell
+     34003 interactive  other  R    3:35:58      2       4G julia
+     34245 interactive  other  R      22:26      2       4G haskell

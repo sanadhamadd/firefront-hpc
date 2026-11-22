@@ -1,0 +1,86 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=3 experiment=e4 nx=8192 ny=4096 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T21:02:12+01:00
+load: 65.72 37.60 16.83 76/11489 3054584
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       4:17     64     200G haskell
+     34382        cpu   self  R       0:02     64       4G haskell,julia
+     32961        gpu  other  R   16:09:37     64     256G julia
+     33855 interactive  other  R    7:49:21      4      16G julia
+     34345 interactive  other  R      12:58      2       4G haskell
+     34110 interactive  other  R    2:41:23      4      16G julia
+     34220 interactive  other  R    1:20:27      2       4G haskell
+     34245 interactive  other  R    1:08:33      2       4G haskell
+     34306 interactive  other  R      40:19      2       4G haskell
+== resources of this job ==
+cpus usable: 5,6,38-51,261,262,294-307
+physcpubind: 5 6 38 39 40 41 42 43 44 45 46 47 48 49 50 51 261 262 294 295 296 297 298 299 300 301 302 303 304 305 306 307 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=32,mem=8G,node=2,billing=32
+TRES=cpu=64,mem=8G,node=2,billing=64
+decomp=blocks ranks=8 threads=4 nodes=2 nodelist=haskell,julia
+serial checksum: 0x2b5710ec01ab7817
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 8192 --ny 4096 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - julia, task  4  0 [2420759]: mask 0x2b000000000000000000000000000000000000000000000000000000000000002b00000000 set
+cpu-bind=MASK - julia, task  5  1 [2420760]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c000000000 set
+cpu-bind=MASK - julia, task  6  2 [2420761]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c0000000000 set
+cpu-bind=MASK - julia, task  7  3 [2420762]: mask 0xe400000000000000000000000000000000000000000000000000000000000000e400000000000 set
+cpu-bind=MASK - haskell, task  0  0 [3054934]: mask 0xc000000060000000000000000000000000000000000000000000000000000000c000000060 set
+cpu-bind=MASK - haskell, task  1  1 [3054935]: mask 0xf000000000000000000000000000000000000000000000000000000000000000f0000000000 set
+cpu-bind=MASK - haskell, task  2  2 [3054936]: mask 0xf000000000000000000000000000000000000000000000000000000000000000f00000000000 set
+cpu-bind=MASK - haskell, task  3  3 [3054937]: mask 0xf000000000000000000000000000000000000000000000000000000000000000f000000000000 set
+level 1 thread 0x7b0da08eb780 affinity 40,296
+level 1 thread 0x7b0d9ec856c0 affinity 41,297
+level 1 thread 0x7b0d8d1f66c0 affinity 42,298
+level 1 thread 0x7b0d8c9f56c0 affinity 43,299
+level 1 thread 0x791e22b33780 affinity 44,300
+level 1 thread 0x791e20ecd6c0 affinity 45,301
+level 1 thread 0x791e0b1e56c0 affinity 46,302
+level 1 thread 0x791e0a9e46c0 affinity 47,303
+level 1 thread 0x777abe775780 affinity 38,294
+level 1 thread 0x777abcba16c0 affinity 39,295
+level 1 thread 0x777aacbe46c0 affinity 40,296
+level 1 thread 0x777aac3e36c0 affinity 41,297
+level 1 thread 0x78702a391780 affinity 48,304
+level 1 thread 0x787023fff6c0 affinity 49,305
+level 1 thread 0x7870161ff6c0 affinity 50,306
+level 1 thread 0x7870159fe6c0 affinity 51,307
+level 1 thread 0x74dbafb65780 affinity 32,288
+level 1 thread 0x74dbadf916c0 affinity 33,289
+level 1 thread 0x74db9dfed6c0 affinity 35,291
+level 1 thread 0x74db9d7ec6c0 affinity 37,293
+level 1 thread 0x7c8a9fed2780 affinity 46,302
+level 1 thread 0x7c8a9e2fe6c0 affinity 49,305
+level 1 thread 0x7c8a8dfed6c0 affinity 50,306
+level 1 thread 0x7c8a8d7ec6c0 affinity 51,307
+level 1 thread 0x70af9d6da780 affinity 42,298
+level 1 thread 0x70af97aff6c0 affinity 43,299
+level 1 thread 0x70af94eec6c0 affinity 44,300
+level 1 thread 0x70af8aff66c0 affinity 45,301
+level 1 thread 0x7369e4f4f780 affinity 5,261
+level 1 thread 0x7369df2e76c0 affinity 6,262
+level 1 thread 0x7369d11f66c0 affinity 38,294
+level 1 thread 0x7369d09f56c0 affinity 39,295
+firefront mpi: 8192 x 4096 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 8 rank(s) on 2 node(s), 4 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=4096 steps=400 seed=42 ranks=8 threads=4 t_total=1.8667 cells_per_s=7.010e+09 burning=16674 burnt=1160620 checksum=0x2b5710ec01ab7817 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=2 decomp=blocks px=4 py=2 overlap=0 t_halo=0.5840 t_compute=1.3344 t_reduce=0.0165 imbalance=1.029
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T21:02:54+01:00
+load: 66.12 41.20 18.92 70/11476 3054991
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       4:59     64     200G haskell
+     34382        cpu   self  R       0:44     64       4G haskell,julia
+     32961        gpu  other  R   16:10:19     64     256G julia
+     33855 interactive  other  R    7:50:03      4      16G julia
+     34345 interactive  other  R      13:40      2       4G haskell
+     34110 interactive  other  R    2:42:05      4      16G julia
+     34220 interactive  other  R    1:21:09      2       4G haskell
+     34245 interactive  other  R    1:09:15      2       4G haskell
+     34306 interactive  other  R      41:01      2       4G haskell
