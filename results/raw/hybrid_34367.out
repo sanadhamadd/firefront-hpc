@@ -1,0 +1,63 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=1 experiment=e4 nx=4096 ny=4096 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T20:58:21+01:00
+load: 2.34 2.12 2.34 4/8032 3040865
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:26     64     200G haskell
+     34367        cpu   self  R       0:02     32       4G haskell
+  34170_72        gpu  other  R       8:29      8      96G haskell
+     34345 interactive  other  R       9:07      2       4G haskell
+     34220 interactive  other  R    1:16:36      2       4G haskell
+     34245 interactive  other  R    1:04:42      2       4G haskell
+     34306 interactive  other  R      36:28      2       4G haskell
+== resources of this job ==
+cpus usable: 38-53,294-309
+physcpubind: 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 294 295 296 297 298 299 300 301 302 303 304 305 306 307 308 309 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=32
+TRES=cpu=16,mem=4G,node=1,billing=16
+TRES=cpu=32,mem=4G,node=1,billing=32
+decomp=blocks ranks=4 threads=4 nodes=1 nodelist=haskell
+serial checksum: 0xff3f3d77c7394ba4
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 4096 --ny 4096 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - haskell, task  0  0 [3050103]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c000000000 set
+cpu-bind=MASK - haskell, task  1  1 [3050104]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c0000000000 set
+cpu-bind=MASK - haskell, task  2  2 [3050105]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c00000000000 set
+cpu-bind=MASK - haskell, task  3  3 [3050106]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c000000000000 set
+level 1 thread 0x7f9bd3aec780 affinity 42,298
+level 1 thread 0x7f9bd1e866c0 affinity 43,299
+level 1 thread 0x7f9bbc1ed6c0 affinity 44,300
+level 1 thread 0x7f9bbb9ec6c0 affinity 45,301
+level 1 thread 0x7c91f46cc780 affinity 38,294
+level 1 thread 0x7c91f2a666c0 affinity 39,295
+level 1 thread 0x7c91f0e5c6c0 affinity 40,296
+level 1 thread 0x7c91dc1ed6c0 affinity 41,297
+level 1 thread 0x7269eaa80780 affinity 50,306
+level 1 thread 0x7269e8e1a6c0 affinity 51,307
+level 1 thread 0x7269d31e56c0 affinity 52,308
+level 1 thread 0x7269d29e46c0 affinity 53,309
+level 1 thread 0x76fee782d780 affinity 46,302
+level 1 thread 0x76fee5bc76c0 affinity 47,303
+level 1 thread 0x76fecfdea6c0 affinity 48,304
+level 1 thread 0x76fecf5e96c0 affinity 49,305
+firefront mpi: 4096 x 4096 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 4 rank(s) on 1 node(s), 4 thread(s), blocks
+RESULT variant=mpi nx=4096 ny=4096 steps=400 seed=42 ranks=4 threads=4 t_total=1.4062 cells_per_s=4.653e+09 burning=15768 burnt=1119685 checksum=0xff3f3d77c7394ba4 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=1 decomp=blocks px=2 py=2 overlap=0 t_halo=0.1137 t_compute=1.3481 t_reduce=0.0176 imbalance=1.033
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T20:58:45+01:00
+load: 24.06 7.13 3.99 57/11604 3050163
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:50     64     200G haskell
+     34371        cpu  other  R       0:13      2       4G haskell
+     34367        cpu   self  R       0:26     32       4G haskell
+  34170_72        gpu  other  R       8:53      8      96G haskell
+     34345 interactive  other  R       9:31      2       4G haskell
+     34220 interactive  other  R    1:17:00      2       4G haskell
+     34245 interactive  other  R    1:05:06      2       4G haskell
+     34306 interactive  other  R      36:52      2       4G haskell

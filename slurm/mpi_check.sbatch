@@ -30,6 +30,12 @@ module load OpenMPI/4.1.6-GCC-13.2.0 || exit 1   # also loads GCC/13.2.0, see en
 echo "mpicc: $(command -v mpicc)  mpirun: $(command -v mpirun)"
 mpirun --version 2>&1 | head -n 1
 echo "== PMI support of the OpenMPI module =="
+if [[ "$SLURM_JOB_NUM_NODES" -gt 1 ]]; then
+    export OMPI_MCA_pml=${OMPI_MCA_pml:-ob1}
+    export OMPI_MCA_btl=${OMPI_MCA_btl:-self,vader,tcp}
+    export OMPI_MCA_btl_vader_backing_directory=${OMPI_MCA_btl_vader_backing_directory:-/tmp}
+fi
+echo "MPI transport: pml=${OMPI_MCA_pml:-default} btl=${OMPI_MCA_btl:-default}"
 ompi_info 2>/dev/null | grep -i -E 'pmi|slurm' | head -n 20
 echo "== srun --mpi=list =="
 srun --mpi=list 2>&1 | head -n 10
@@ -54,11 +60,13 @@ summary=""
 for launch in "${launchers[@]}"; do
     echo "== $launch =="
     out=$(timeout 60 $launch build/firefront_mpi "${args[@]}" --decomp blocks 2>&1)
+    status=$?
     echo "$out" | tail -n 4
     got=$(echo "$out" | grep '^RESULT' | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/')
     ranks=$(echo "$out" | grep '^RESULT' | sed 's/.* ranks=\([0-9]*\).*/\1/')
     nodes=$(echo "$out" | grep '^RESULT' | sed 's/.* nodes=\([0-9]*\).*/\1/')
-    if [ -n "$got" ] && [ "$got" = "$want" ] && [ "$ranks" = "$SLURM_NTASKS" ]; then
+    if [[ "$status" = 0 && -n "$got" && "$got" = "$want" &&
+          "$ranks" = "$SLURM_NTASKS" && "$nodes" = "$SLURM_JOB_NUM_NODES" ]]; then
         summary="$summary\nworks:  $launch  ($ranks ranks on $nodes node(s), checksum $got)"
     else
         summary="$summary\nfails:  $launch  (ranks=${ranks:-none}, checksum=${got:-none})"

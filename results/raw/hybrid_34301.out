@@ -1,0 +1,78 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=3 experiment=e3 nx=8192 ny=8192 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T20:16:45+01:00
+load: 9.42 4.60 4.00 2/7518 3014955
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34301        cpu   self  R       0:01     64       4G haskell,julia
+     32961        gpu  other  R   15:24:10     64     256G julia
+     33855 interactive  other  R    7:03:54      4      16G julia
+     34110 interactive  other  R    1:55:56      4      16G julia
+     34056 interactive  other  R    2:28:15      2       4G haskell
+     34201 interactive  other  R      49:57      2       4G haskell
+     34220 interactive  other  R      35:00      2       4G haskell
+     34003 interactive  other  R    3:36:38      2       4G julia
+     34245 interactive  other  R      23:06      2       4G haskell
+== resources of this job ==
+cpus usable: 4-19,260-275
+physcpubind: 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 260 261 262 263 264 265 266 267 268 269 270 271 272 273 274 275 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=64
+TRES=cpu=32,mem=8G,node=2,billing=32
+TRES=cpu=64,mem=8G,node=2,billing=64
+decomp=blocks ranks=32 threads=1 nodes=2 nodelist=haskell,julia
+serial checksum: 0xb8683c550fa95bd6
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - haskell, task  0  0 [3015035]: mask 0x100000000000000000000000000000000000000000000000000000000000000010 set
+cpu-bind=MASK - haskell, task  1  1 [3015036]: mask 0x200000000000000000000000000000000000000000000000000000000000000020 set
+cpu-bind=MASK - haskell, task  2  2 [3015037]: mask 0x400000000000000000000000000000000000000000000000000000000000000040 set
+cpu-bind=MASK - haskell, task  3  3 [3015038]: mask 0x800000000000000000000000000000000000000000000000000000000000000080 set
+cpu-bind=MASK - haskell, task  4  4 [3015039]: mask 0x1000000000000000000000000000000000000000000000000000000000000000100 set
+cpu-bind=MASK - haskell, task  5  5 [3015040]: mask 0x2000000000000000000000000000000000000000000000000000000000000000200 set
+cpu-bind=MASK - haskell, task  6  6 [3015041]: mask 0x4000000000000000000000000000000000000000000000000000000000000000400 set
+cpu-bind=MASK - haskell, task  7  7 [3015042]: mask 0x8000000000000000000000000000000000000000000000000000000000000000800 set
+cpu-bind=MASK - haskell, task  8  8 [3015043]: mask 0x10000000000000000000000000000000000000000000000000000000000000001000 set
+cpu-bind=MASK - haskell, task  9  9 [3015044]: mask 0x20000000000000000000000000000000000000000000000000000000000000002000 set
+cpu-bind=MASK - haskell, task 10 10 [3015045]: mask 0x40000000000000000000000000000000000000000000000000000000000000004000 set
+cpu-bind=MASK - haskell, task 11 11 [3015046]: mask 0x80000000000000000000000000000000000000000000000000000000000000008000 set
+cpu-bind=MASK - haskell, task 12 12 [3015047]: mask 0x100000000000000000000000000000000000000000000000000000000000000010000 set
+cpu-bind=MASK - haskell, task 13 13 [3015048]: mask 0x200000000000000000000000000000000000000000000000000000000000000020000 set
+cpu-bind=MASK - haskell, task 14 14 [3015049]: mask 0x400000000000000000000000000000000000000000000000000000000000000040000 set
+cpu-bind=MASK - haskell, task 15 15 [3015050]: mask 0x800000000000000000000000000000000000000000000000000000000000000080000 set
+cpu-bind=MASK - julia, task 16  0 [2362794]: mask 0x1000000000000000000000000000000000000000000000000000000000000000100000000 set
+cpu-bind=MASK - julia, task 17  1 [2362795]: mask 0x2000000000000000000000000000000000000000000000000000000000000000200000000 set
+cpu-bind=MASK - julia, task 18  2 [2362796]: mask 0x8000000000000000000000000000000000000000000000000000000000000000800000000 set
+cpu-bind=MASK - julia, task 19  3 [2362797]: mask 0x20000000000000000000000000000000000000000000000000000000000000002000000000 set
+cpu-bind=MASK - julia, task 20  4 [2362798]: mask 0x40000000000000000000000000000000000000000000000000000000000000004000000000 set
+cpu-bind=MASK - julia, task 21  5 [2362799]: mask 0x80000000000000000000000000000000000000000000000000000000000000008000000000 set
+cpu-bind=MASK - julia, task 22  6 [2362800]: mask 0x100000000000000000000000000000000000000000000000000000000000000010000000000 set
+cpu-bind=MASK - julia, task 23  7 [2362801]: mask 0x200000000000000000000000000000000000000000000000000000000000000020000000000 set
+cpu-bind=MASK - julia, task 24  8 [2362802]: mask 0x400000000000000000000000000000000000000000000000000000000000000040000000000 set
+cpu-bind=MASK - julia, task 25  9 [2362803]: mask 0x800000000000000000000000000000000000000000000000000000000000000080000000000 set
+cpu-bind=MASK - julia, task 26 10 [2362804]: mask 0x1000000000000000000000000000000000000000000000000000000000000000100000000000 set
+cpu-bind=MASK - julia, task 27 11 [2362805]: mask 0x2000000000000000000000000000000000000000000000000000000000000000200000000000 set
+cpu-bind=MASK - julia, task 28 12 [2362806]: mask 0x4000000000000000000000000000000000000000000000000000000000000000400000000000 set
+cpu-bind=MASK - julia, task 29 13 [2362807]: mask 0x20000000000000000000000000000000000000000000000000000000000000002000000000000 set
+cpu-bind=MASK - julia, task 30 14 [2362808]: mask 0x40000000000000000000000000000000000000000000000000000000000000004000000000000 set
+cpu-bind=MASK - julia, task 31 15 [2362809]: mask 0x80000000000000000000000000000000000000000000000000000000000000008000000000000 set
+firefront mpi: 8192 x 8192 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 32 rank(s) on 2 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=8192 ny=8192 steps=400 seed=42 ranks=32 threads=1 t_total=3.1368 cells_per_s=8.344e+09 burning=18817 burnt=1267265 checksum=0xb8683c550fa95bd6 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=2 decomp=blocks px=4 py=8 overlap=0 t_halo=0.8014 t_compute=2.6953 t_reduce=0.0565 imbalance=1.084
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T20:16:51+01:00
+load: 9.95 4.79 4.07 2/7522 3015209
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34301        cpu   self  R       0:07     64       4G haskell,julia
+     32961        gpu  other  R   15:24:16     64     256G julia
+     33855 interactive  other  R    7:04:00      4      16G julia
+     34110 interactive  other  R    1:56:02      4      16G julia
+     34056 interactive  other  R    2:28:21      2       4G haskell
+     34201 interactive  other  R      50:03      2       4G haskell
+     34220 interactive  other  R      35:06      2       4G haskell
+     34003 interactive  other  R    3:36:44      2       4G julia
+     34245 interactive  other  R      23:12      2       4G haskell
