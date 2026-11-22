@@ -21,7 +21,7 @@ static uint8_t cell_value(int gx, int gy, int round)
     return (uint8_t)(1 + h % 255);
 }
 
-static int check(int gnx, int gny, int kind)
+static int check(int gnx, int gny, int kind, int overlap)
 {
     Decomp d;
     if (decomp_init(&d, gnx, gny, kind) != 0)
@@ -38,7 +38,19 @@ static int check(int gnx, int gny, int kind)
             for (int c = 1; c <= d.nx; c++)
                 grid[r * stride + c] = cell_value(d.x0 + c - 1, d.y0 + r - 1, round);
 
-        halo_exchange(&h, &d, grid);
+        if (overlap) {
+            MPI_Request requests[HALO_REQUESTS];
+            if (d.py > 1) {
+                halo_post_rows(&d, grid, requests);
+                MPI_Waitall(HALO_REQUESTS, requests, MPI_STATUSES_IGNORE);
+            }
+            if (d.px > 1) {
+                halo_post_columns(&h, &d, grid, requests);
+                MPI_Waitall(HALO_REQUESTS, requests, MPI_STATUSES_IGNORE);
+            }
+        } else {
+            halo_exchange(&h, &d, grid);
+        }
 
         for (int r = 0; r < d.ny + 2; r++) {
             for (int c = 0; c < d.nx + 2; c++) {
@@ -68,13 +80,15 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    int grids[][2] = { { 64, 64 }, { 203, 157 }, { 157, 203 }, { 1000, 9 }, { 17, 500 } };
+    int grids[][2] = { { 64, 64 }, { 203, 157 }, { 157, 203 }, { 1000, 9 }, { 17, 500 }, { 4, 9 } };
     int ngrids = (int)(sizeof grids / sizeof grids[0]);
     int failures = 0;
 
     for (int g = 0; g < ngrids; g++) {
         for (int kind = DECOMP_STRIPS; kind <= DECOMP_BLOCKS; kind++) {
-            int errors = check(grids[g][0], grids[g][1], kind);
+            int errors = check(grids[g][0], grids[g][1], kind, 0);
+            if (errors >= 0)
+                errors += check(grids[g][0], grids[g][1], kind, 1);
             if (rank == 0) {
                 if (errors < 0)
                     printf("skip: %d x %d too small for %d ranks as %s\n", grids[g][0], grids[g][1], size, decomp_name(kind));

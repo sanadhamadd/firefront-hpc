@@ -20,6 +20,7 @@ struct Sim {
     int step;              /* steps done so far */
     double t_halo;         /* seconds in the halo exchange since the last sim_reset_times */
     double t_compute;      /* seconds updating cells since the last sim_reset_times */
+    double t_post, t_wait, t_interior, t_boundary;
     uint8_t *old_state;
     uint8_t *new_state;
     float *fuel;
@@ -157,6 +158,9 @@ void sim_free(Sim *s)
  */
 static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
 {
+    if (r0 > r1 || c0 > c1)
+        return;
+
     const Params *p = &s->p;
     const Rules *rules = &s->rules;
     const int stride = s->stride;
@@ -206,19 +210,83 @@ static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
     }
 }
 
+static double step_seconds(const Sim *s)
+{
+    return s->p.verify_only ? 0.0 : wall_seconds();
+}
+
+#ifdef USE_MPI
+static void step_overlap(Sim *s)
+{
+    const int nx = s->d.nx, ny = s->d.ny;
+    const uint64_t step = (uint64_t)s->step;
+    const int rows = s->d.py > 1, columns = s->d.px > 1;
+    MPI_Request requests[HALO_REQUESTS];
+
+    double start = step_seconds(s);
+    if (rows)
+        halo_post_rows(&s->d, s->old_state, requests);
+    else
+        halo_post_columns(&s->halo, &s->d, s->old_state, requests);
+    double posted = step_seconds(s);
+
+    /* All reads are from own cells. The send buffer is read-only until completion,
+       and the update writes to the other grid. */
+    update_block(s, 2, ny - 1, 2, nx - 1, step);
+    double interior = step_seconds(s);
+    MPI_Waitall(HALO_REQUESTS, requests, MPI_STATUSES_IGNORE);
+    double first_wait = step_seconds(s);
+    double post_time = posted - start;
+    double wait_time = first_wait - interior;
+    double ready = first_wait;
+
+    if (rows && columns) {
+        /* Column sends read the just-received halo rows to forward the corners. */
+        halo_post_columns(&s->halo, &s->d, s->old_state, requests);
+        double columns_posted = step_seconds(s);
+        MPI_Waitall(HALO_REQUESTS, requests, MPI_STATUSES_IGNORE);
+        ready = step_seconds(s);
+        post_time += columns_posted - first_wait;
+        wait_time += ready - columns_posted;
+    }
+
+    if (nx <= 2 || ny <= 2) {
+        update_block(s, 1, ny, 1, nx, step);
+    } else {
+        update_block(s, 1, 1, 1, nx, step);
+        update_block(s, ny, ny, 1, nx, step);
+        update_block(s, 2, ny - 1, 1, 1, step);
+        update_block(s, 2, ny - 1, nx, nx, step);
+    }
+    double end = step_seconds(s);
+    s->t_post += post_time;
+    s->t_wait += wait_time;
+    s->t_halo += post_time + wait_time;
+    s->t_interior += interior - posted;
+    s->t_boundary += end - ready;
+    s->t_compute += (interior - posted) + (end - ready);
+}
+#endif
+
 void sim_step(Sim *s)
 {
-    /* the border of old_state must hold the neighbours' current cells */
-    double t0 = wall_seconds();
-    halo_exchange(&s->halo, &s->d, s->old_state);
-    double t1 = wall_seconds();
-
     s->step++;
-    update_block(s, 1, s->d.ny, 1, s->d.nx, (uint64_t)s->step);
-    double t2 = wall_seconds();
-
-    s->t_halo += t1 - t0;
-    s->t_compute += t2 - t1;
+#ifdef USE_MPI
+    if (s->p.overlap && s->d.size > 1) {
+        step_overlap(s);
+    } else
+#endif
+    {
+        double t0 = step_seconds(s);
+        halo_exchange(&s->halo, &s->d, s->old_state);
+        double t1 = step_seconds(s);
+        update_block(s, 1, s->d.ny, 1, s->d.nx, (uint64_t)s->step);
+        double compute = step_seconds(s) - t1;
+        s->t_halo += t1 - t0;
+        s->t_compute += compute;
+        if (s->p.overlap)
+            s->t_interior += compute; /* one rank has no incoming halos */
+    }
 
     uint8_t *tmp = s->old_state;
     s->old_state = s->new_state;
@@ -234,6 +302,15 @@ void sim_reset_times(Sim *s)
 {
     s->t_halo = 0.0;
     s->t_compute = 0.0;
+    s->t_post = s->t_wait = s->t_interior = s->t_boundary = 0.0;
+}
+
+void sim_overlap_times(const Sim *s, double times[4])
+{
+    times[0] = s->t_post;
+    times[1] = s->t_wait;
+    times[2] = s->t_interior;
+    times[3] = s->t_boundary;
 }
 
 void sim_times(const Sim *s, double *t_halo, double *t_compute)

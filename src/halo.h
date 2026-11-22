@@ -31,4 +31,12 @@ void halo_init(Halo *h, const Decomp *d);
 void halo_free(Halo *h);
 void halo_exchange(const Halo *h, const Decomp *d, uint8_t *grid);
 
+#ifdef USE_MPI
+enum { HALO_REQUESTS = 4 };
+/* Each phase has separate receive cells. Finish the rows before posting columns. */
+void halo_post_rows(const Decomp *d, uint8_t *grid, MPI_Request requests[HALO_REQUESTS]);
+void halo_post_columns(const Halo *h, const Decomp *d, uint8_t *grid,
+                       MPI_Request requests[HALO_REQUESTS]);
+#endif
+
 #endif
