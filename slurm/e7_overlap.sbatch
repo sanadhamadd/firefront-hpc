@@ -43,7 +43,7 @@ echo "Compiler: $(gcc --version | sed -n '1p')"
 echo "MPI: $(mpirun --version | sed -n '1p')"
 node_state start
 job_resources || echo "Some allocation details were unavailable"
-bash tools/capture_env.sh > "results/raw/e7-e9/env_${SLURM_JOB_ID}.txt"
+bash tools/capture_env.sh > "results/raw/e7-e9/env_${SLURM_JOB_ID}.txt" || echo "Environment capture failed; continuing"
 
 launch=(srun --kill-on-bad-exit=1 --cpu-bind=verbose,cores)
 args=(--nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16 --decomp "$decomp")
