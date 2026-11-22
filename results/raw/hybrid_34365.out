@@ -1,0 +1,43 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=1 experiment=e4 nx=1024 ny=1024 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T20:58:07+01:00
+load: 2.26 2.09 2.33 11/8925 3039846
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:12     64     200G haskell
+     34365        cpu   self  R       0:03      2       4G haskell
+  34170_72        gpu  other  R       8:15      8      96G haskell
+     34345 interactive  other  R       8:53      2       4G haskell
+     34220 interactive  other  R    1:16:22      2       4G haskell
+     34245 interactive  other  R    1:04:28      2       4G haskell
+     34306 interactive  other  R      36:14      2       4G haskell
+== resources of this job ==
+cpus usable: 38,294
+physcpubind: 38 294 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=2
+TRES=cpu=1,mem=4G,node=1,billing=1
+TRES=cpu=2,mem=4G,node=1,billing=2
+decomp=blocks ranks=1 threads=1 nodes=1 nodelist=haskell
+serial checksum: 0xb39df2bfa77c7533
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 1024 --ny 1024 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - haskell, task  0  0 [3039988]: mask 0x40000000000000000000000000000000000000000000000000000000000000004000000000 set
+firefront mpi: 1024 x 1024 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 1 rank(s) on 1 node(s), 1 thread(s), blocks
+RESULT variant=mpi nx=1024 ny=1024 steps=400 seed=42 ranks=1 threads=1 t_total=1.1203 cells_per_s=3.650e+08 burning=2286 burnt=551174 checksum=0xb39df2bfa77c7533 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=1 decomp=blocks px=1 py=1 overlap=0 t_halo=0.0000 t_compute=1.1192 t_reduce=0.0011 imbalance=1.000
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T20:58:10+01:00
+load: 2.32 2.11 2.34 5/8168 3040004
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:15     64     200G haskell
+     34365        cpu   self  R       0:06      2       4G haskell
+  34170_72        gpu  other  R       8:18      8      96G haskell
+     34345 interactive  other  R       8:56      2       4G haskell
+     34220 interactive  other  R    1:16:25      2       4G haskell
+     34245 interactive  other  R    1:04:31      2       4G haskell
+     34306 interactive  other  R      36:17      2       4G haskell

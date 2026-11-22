@@ -1,0 +1,47 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+MPI transport: pml=ob1 btl=self,vader,tcp
+rep=1 experiment=e4 nx=2048 ny=2048 steps=400
+== node state (start) ==
+node: haskell
+time: 2026-11-21T20:58:12+01:00
+load: 2.32 2.11 2.34 3/8114 3040356
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:17     64     200G haskell
+     34366        cpu   self  R       0:02      8       4G haskell
+  34170_72        gpu  other  R       8:20      8      96G haskell
+     34345 interactive  other  R       8:58      2       4G haskell
+     34220 interactive  other  R    1:16:27      2       4G haskell
+     34245 interactive  other  R    1:04:33      2       4G haskell
+     34306 interactive  other  R      36:19      2       4G haskell
+== resources of this job ==
+cpus usable: 38-41,294-297
+physcpubind: 38 39 40 41 294 295 296 297 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=8
+TRES=cpu=4,mem=4G,node=1,billing=4
+TRES=cpu=8,mem=4G,node=1,billing=8
+decomp=blocks ranks=1 threads=4 nodes=1 nodelist=haskell
+serial checksum: 0x1e4d26aa8b648d29
+command: srun --cpu-bind=verbose,cores ./build/firefront_mpi --nx 2048 --ny 2048 --steps 400 --seed 42 --ignitions 16 --decomp blocks --overlap 0
+cpu-bind=MASK - haskell, task  0  0 [3040635]: mask 0x3c000000000000000000000000000000000000000000000000000000000000003c000000000 set
+level 1 thread 0x731a443b9780 affinity 38,294
+level 1 thread 0x731a42b646c0 affinity 39,295
+level 1 thread 0x731a40b546c0 affinity 40,296
+level 1 thread 0x731a2d1f66c0 affinity 41,297
+firefront mpi: 2048 x 2048 cells, 400 steps, seed 42, wind 6.0 m/s towards 0 deg, humidity 0.20, 1 rank(s) on 1 node(s), 4 thread(s), blocks
+RESULT variant=mpi nx=2048 ny=2048 steps=400 seed=42 ranks=1 threads=4 t_total=1.2530 cells_per_s=1.305e+09 burning=10326 burnt=879506 checksum=0x1e4d26aa8b648d29 commit=ce2e211 compiler=13.2.0 ignitions=16 places=cores humidity=0.2 nodes=1 decomp=blocks px=1 py=1 overlap=0 t_halo=0.0000 t_compute=1.2484 t_reduce=0.0045 imbalance=1.000
+checksum ok
+== node state (end) ==
+node: haskell
+time: 2026-11-21T20:58:19+01:00
+load: 2.37 2.12 2.34 4/8101 3040655
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     34214        cpu  other  R       0:24     64     200G haskell
+     34366        cpu   self  R       0:09      8       4G haskell
+  34170_72        gpu  other  R       8:27      8      96G haskell
+     34345 interactive  other  R       9:05      2       4G haskell
+     34220 interactive  other  R    1:16:34      2       4G haskell
+     34245 interactive  other  R    1:04:40      2       4G haskell
+     34306 interactive  other  R      36:26      2       4G haskell

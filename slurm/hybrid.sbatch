@@ -26,12 +26,20 @@
 #SBATCH --nodelist=haskell,julia
 
 NX=${NX:-8192}
+NY=${NY:-$NX}
 STEPS=${STEPS:-400}
 DECOMP=${DECOMP:-blocks}
 OVERLAP=${OVERLAP:-0}
 REP=${REP:-1}
 LAUNCH=${LAUNCH:-srun --cpu-bind=cores}
-REFERENCE=0xb8683c550fa95bd6     # serial checksum of the E1 problem
+REFERENCE=${REFERENCE:-}
+if [[ "$NX" = 8192 && "$NY" = 8192 && "$STEPS" = 400 ]]; then
+    if [[ -n "$REFERENCE" && "$REFERENCE" != 0xb8683c550fa95bd6 ]]; then
+        echo "CHECKSUM ERROR: supplied reference disagrees with E1" >&2
+        exit 1
+    fi
+    REFERENCE=0xb8683c550fa95bd6
+fi
 
 source slurm/job_helpers.sh
 
@@ -64,23 +72,44 @@ if [ ! -x "$bin" ]; then
     exit 1
 fi
 
-echo "rep=$REP"
+echo "rep=$REP experiment=${EXPERIMENT:-} nx=$NX ny=$NY steps=$STEPS"
 node_state start
 job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 
 echo "decomp=$DECOMP ranks=$SLURM_NTASKS threads=$OMP_NUM_THREADS nodes=$SLURM_JOB_NUM_NODES nodelist=$SLURM_JOB_NODELIST"
-# run directly, not with run_logged: numastat of srun or mpirun would describe the
-# launcher, not the MPI ranks
-echo "command: $LAUNCH $bin ..."
-out=$($LAUNCH "$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42 --ignitions 16 \
-      --decomp "$DECOMP" --overlap "$OVERLAP")
-status=$?
-echo "$out"
-if [ "$NX" = 8192 ] && [ "$STEPS" = 400 ]; then
-    got=$(echo "$out" | grep '^RESULT' | sed 's/.*checksum=\(0x[0-9a-f]*\).*/\1/')
-    if [ "$got" = "$REFERENCE" ]; then echo "checksum ok"; else echo "CHECKSUM MISMATCH: $got, serial $REFERENCE"; fi
+args=(--nx "$NX" --ny "$NY" --steps "$STEPS" --seed 42 --ignitions 16)
+validate=(python3 tools/phase3a_results.py check "$NX" "$NY" "$STEPS")
+if [[ -z "$REFERENCE" ]]; then
+    if [[ ! -x ./build/firefront_serial ]]; then
+        echo "CHECKSUM ERROR: build the serial executable or supply REFERENCE" >&2
+        exit 1
+    fi
+    # Dedicated one-task step, outside the benchmark's timed region.
+    serial=$(srun --mpi=none --exact -N1 -n1 --ntasks-per-node=1 -c1 ./build/firefront_serial "${args[@]}") || exit 1
+    REFERENCE=$(printf '%s\n' "$serial" | "${validate[@]}" serial) || exit 1
 fi
+echo "serial checksum: $REFERENCE"
 
+read -r -a launcher <<< "$LAUNCH"
+if [[ "$LAUNCH" = "mpirun --bind-to core" ]]; then
+    ranks_per_node=$((SLURM_NTASKS / SLURM_JOB_NUM_NODES))
+    launcher+=(--map-by "ppr:${ranks_per_node}:node:PE=${OMP_NUM_THREADS}" -np "$SLURM_NTASKS")
+fi
+echo "command: ${launcher[*]} $bin ${args[*]} --decomp $DECOMP --overlap $OVERLAP"
+out=$("${launcher[@]}" "$bin" "${args[@]}" --decomp "$DECOMP" --overlap "$OVERLAP")
+status=$?
+# Keep failed output for diagnosis without exposing it to generic RESULT parsers.
+if (( status != 0 )); then
+    printf '%s\n' "$out" | sed 's/^/FAILED OUTPUT: /'
+    exit "$status"
+fi
+if ! printf '%s\n' "$out" | "${validate[@]}" mpi "$REFERENCE" "$SLURM_NTASKS" \
+    "$OMP_NUM_THREADS" "$SLURM_JOB_NUM_NODES" "$DECOMP" "$OVERLAP"; then
+    printf '%s\n' "$out" | sed 's/^/FAILED OUTPUT: /'
+    exit 1
+fi
+printf '%s\n' "$out"
+echo "checksum ok"
 node_state end
-exit $status
+exit 0
