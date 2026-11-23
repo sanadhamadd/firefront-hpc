@@ -273,6 +273,12 @@ def main():
         df = df[~df.file.astype(str).str.startswith("e8_")]
     if "skip_tiles" in df:
         df = df[pd.to_numeric(df.skip_tiles, errors="coerce").fillna(0) == 0]
+    # E10 keeps the grid on a GPU. One rank and one thread would otherwise become
+    # a fake 1-core series and bend the E1/E2 curves. tools/plot_e10.py draws them.
+    if "variant" in df.columns:
+        df = df[~df.variant.astype(str).isin(["cuda", "acc", "accmc"])]
+    if "file" in df.columns:
+        df = df[~df.file.astype(str).str.startswith("gpu")]
     s = add_speedup(summarise(df))
     styles = series_style(s)
     no_serial = s[s.variant != "serial"]   # serial is the reference, not a curve

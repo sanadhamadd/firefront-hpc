@@ -13,7 +13,11 @@ C sources of the simulator.
 | `timers.h` | wall clock | done |
 | `decomp.h/.c` | process grid (strips or blocks), each rank's block and its neighbours | done, tested with 1–8 ranks |
 | `halo.h/.c` | blocking and nonblocking halo exchange: rows first, then whole columns forwarding the corners, using an MPI vector datatype | done |
-| `step_cuda.cu`, `step_acc.c` | GPU port | to do |
+| `update.h` | the cell rule, shared by the CPU loops and the GPU builds | done |
+| `ignite.c` | where the extra ignition patches go; same function for every build | done |
+| `rules_build.c` | builds the wind and slope tables once, with the CPU compiler | done |
+| `step_cuda.cu` | CUDA: one kernel per step, double buffer, grid stays on the device | code done; the cluster job checks the checksum |
+| `step_acc.c` | OpenACC GPU and multicore, same step | code done; the cluster job checks the checksum |
 | `bench/stream.c` | STREAM triad memory bandwidth (OpenMP, first touch), `make stream`, prints `RESULT variant=stream ... bw_gbs= ... places=` | done |
 | `bench/` ping-pong | MPI latency and bandwidth | to do |
 
@@ -34,6 +38,8 @@ Appended after `humidity`, so older logs and `tools/parse_logs.py` keep working:
 | `t_post`, `t_wait`, `t_interior`, `t_boundary` | overlap-only fields for request posting, completion calls, interior and boundary updates |
 | `skip_tiles` | E8: tile edge T of `--skip-tiles T` (0 = every cell is updated); printed by every build |
 | `active_tiles` | E8: share of the tile updates that were computed, over all ranks and timed steps (1 with `skip_tiles=0`) |
+| `t_kernel` | GPU builds only: device time of the timed steps (CUDA events, or the OpenACC loops) |
+| `t_with_copies` | GPU builds only: `t_kernel` plus the one upload of the grids and the one download of the state |
 
 `t_total` is the slowest rank's time after the warm-up barrier. Each phase is
 summed locally over the timed steps and then maximized across ranks. The maxima

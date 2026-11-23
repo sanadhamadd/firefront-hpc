@@ -162,7 +162,72 @@ This writes `e8_summary.csv`, `e8_before_after.png`, `e8_tile_size.png` and `e8_
 
 ### E10 – GPU port (CUDA, OpenACC)
 
-To be added with the GPU code (`slurm/gpu.sbatch` is the template).
+Branch `rodrigo/e10-gpu`. The commit to cite is the head of that branch until it is merged; after merge, cite the merge commit on `main`. Job IDs are filled in below once the jobs have run. This machine cannot log in to SciTech, so the IDs are still empty.
+
+| | |
+|---|---|
+| CUDA module | `hpc-course-cuda/12.8.1` |
+| OpenACC module | `nvhpc/25.7` |
+| GPU | always `--gres=gpu:rtx6000ada:1` (not `rtx6000bb`) |
+| Host march | `-march=znver4` (`CUDA_HOST_MARCH` in the Makefile), the march GCC 13.2 selects on haskell |
+| Device | `sm_89`, `nvcc --fmad=false` |
+| Binaries | `build/firefront_cuda`, `build/firefront_acc`, `build/firefront_acc_mc` |
+| E1 checksum | `0xb8683c550fa95bd6` |
+| Build job | |
+| E1 CUDA jobs | |
+| Sweep jobs | |
+| OpenACC jobs | |
+
+On the login node (`rust`), from a checkout of this branch:
+
+```bash
+git fetch origin
+git checkout rodrigo/e10-gpu
+git pull origin rodrigo/e10-gpu
+
+sbatch slurm/gpu_build.sbatch
+squeue -u "$USER"
+```
+
+`results/raw/gpu_build_<id>.out` should end with `cuda checksums ok`, including `VERIFY checksum=0x74cfadfb78e73134` and `VERIFY checksum=0xb8683c550fa95bd6`. Then:
+
+```bash
+for rep in 1 2 3; do sbatch slurm/gpu.sbatch; done
+```
+
+Each log `results/raw/gpu_<id>.out` prints `checksum ok` and one `RESULT` line with `variant=cuda`, `t_kernel` (device time of the timed steps) and `t_with_copies` (that time plus the one upload and the one download). The grid stays on the GPU between steps. `--skip-tiles` is rejected.
+
+The student QOS allows 4 running jobs and 8 submitted in total. Wait until the build has finished, then submit the three E1 jobs. After those are no longer all sitting in the queue, the size sweep, one wave at a time:
+
+```bash
+for n in 1024 2048 4096 16384; do sbatch --export=ALL,NX=$n slurm/gpu_sweep.sbatch; done
+```
+
+Repeat with `REP=2` and `REP=3`. Sizes up to 4096 are checked against `build/firefront_serial` in the same job. 16384 is timed and recorded; 8192 remains the checksum gate.
+
+OpenACC, only after CUDA matches:
+
+```bash
+sbatch slurm/acc_build.sbatch
+# then, if the log ends with "acc checksums ok":
+for rep in 1 2 3; do sbatch slurm/acc.sbatch; done
+```
+
+If the GPU queue does not start, build and run OpenACC on 32 cores of haskell. That job does not ask for a GPU:
+
+```bash
+sbatch slurm/acc_mc_build.sbatch
+# log ends with "acc multicore checksums ok", then:
+for rep in 1 2 3; do sbatch slurm/acc_mc.sbatch; done
+```
+
+Copy the logs back to the laptop and rebuild the table and figures (no cluster needed):
+
+```bash
+python tools/plot_e10.py results/raw results/tables results/figures
+```
+
+That writes `results/tables/e10_summary.csv`, `results/figures/e10_time.png` and `results/figures/e10_speedup.png`. `tools/make_plots.py` ignores `cuda`, `acc` and `accmc` rows.
 
 ## 6. Rebuild tables and figures from the committed logs
 
@@ -183,6 +248,7 @@ This needs only Python and the repository; no cluster. Write into a new director
 | E5 table and figures | `results/tables/e5_summary.csv`, `results/figures/e5_*.png` | `plot_e5.py` |
 | E3, E4 tables and figures | `results/tables/e{3,4}_final{,_runs}.csv`, `results/figures/e{3,4}_report.{png,pdf}` | `plot_phase3a.py --report` (output files are named `e3.csv`, `e3_runs.csv`, …) |
 | E8 table and figures | `results/tables/e8_summary.csv`, `results/figures/e8_*.png` | `plot_e8.py` (after the cluster runs) |
+| E10 table and figures | `results/tables/e10_summary.csv`, `results/figures/e10_time.png`, `results/figures/e10_speedup.png` | `plot_e10.py` (after the GPU logs are copied back) |
 | E7 tables and figures | `results/tables/e7_{runs,summary}.csv`, `results/figures/e7_*.svg` | `python tools/analyze_e7.py results/raw/e7-e9` (needs the E7 logs, see below) |
 
 Checked on 22 Nov 2026: `e5_summary.csv`, `e3_final*.csv` and `e4_final*.csv` come out identical. `all.csv` comes out with the same rows as the committed file plus the 30 E3/E4 (`hybrid_*`) runs, which the committed copy predates.
