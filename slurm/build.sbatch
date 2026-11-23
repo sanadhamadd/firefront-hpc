@@ -21,6 +21,9 @@
 # also has a system mpirun from Open MPI 5.0.7; the log shows which mpicc/mpirun are used,
 # and both must come from the module. make test-mpi runs the MPI checks with up to 8 ranks
 # on the 8 CPUs of this job (mpirun --oversubscribe).
+# Time: 20 min. The build is not timed, so the 10-min rule of the timed jobs does not apply.
+# With the E8 checks, make test-mpi runs twice as many cases; on 22 Nov 2026 (job 35362,
+# shared node) it was stopped at the 10-min limit in the last MPI checks, with no failures.
 #SBATCH --job-name=firefront
 #SBATCH --output=results/raw/build_%j.out
 #SBATCH --partition=cpu
@@ -28,7 +31,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=4G
-#SBATCH --time=00:10:00
+#SBATCH --time=00:20:00
 #SBATCH --dependency=singleton
 #SBATCH --nodelist=haskell
 
