@@ -19,10 +19,10 @@ Speed-up is against the serial E1 median, 81.95 s. The fastest one-node CPU resu
 | OpenMP, 32 threads | 3.24 s | 25.3× | a parallel loop | OpenMP | memory bandwidth, and the 32-core user cap |
 | MPI, 32 ranks, blocks, 1 node | 2.62 s | 31.3× | domain split and halo | MPI | halo latency; two nodes over TCP are slower (4.56 s) |
 | Hybrid, 8 ranks × 4 threads, 1 node | 2.69 s | 30.4× | both of the above | MPI and OpenMP | the same halo; overlap does not remove it |
-| CUDA, RTX 6000 Ada | — | — | one kernel, the rule reused | NVIDIA GPU, CUDA | device bandwidth once the grid is resident; the two copies are extra |
-| OpenACC, same GPU | — | — | pragmas on that loop | NVIDIA compiler | the same bandwidth, if the compiler keeps the floating-point order |
-| OpenACC, 32 CPU cores | — | — | the same source, no GPU | the NVIDIA compiler, no device | whatever OpenMP is already limited by |
+| CUDA, RTX 6000 Ada | not measured | — | one kernel, the rule reused | NVIDIA GPU, CUDA | device bandwidth once the grid is resident; the two copies are extra |
+| OpenACC, same GPU | not measured | — | pragmas on that loop | NVIDIA compiler | the same bandwidth, if the compiler keeps the floating-point order |
+| OpenACC, 32 CPU cores | 13.13 s | 6.24× | the same source, no GPU | the NVIDIA compiler, no device | the multicore loop did not use the 32 cores well: slower than OpenMP (3.24 s) and than MPI (2.62 s) |
 
-<!-- Fill the empty CUDA and OpenACC cells from results/tables/e10_summary.csv: t_kernel_med, t_with_copies_med, speedup_kernel, speedup_with_copies. Median of 3, and quote min–max from the same file. -->
+<!-- OpenACC multicore: results/tables/e10_summary.csv, jobs 36550–36552, median 13.1269 s, min 13.0745, max 13.2364. Speed-up against serial 81.9468 s is 6.24. Against the best one-node CPU (MPI 32 ranks, 2.6198 s in e5_summary.csv) the ratio is 0.20. t_kernel and t_with_copies are the same: there is no GPU copy. CUDA job 36548 was still pending. -->
 
-The CPU table is already enough to see the shape of the problem. Past 32 cores on one node the gain is in the halo, not in more threads: hybrid is slightly slower than pure MPI. The GPU does not change that arithmetic. It only helps if the resident kernel is faster than 2.62 s by enough to pay for the two transfers. Figures: `results/figures/e10_time.png` and `results/figures/e10_speedup.png`.
+The CPU table is already enough to see the shape of the problem. Past 32 cores on one node the gain is in the halo, not in more threads: hybrid is slightly slower than pure MPI. The only E10 number measured so far is OpenACC on 32 cores of haskell (jobs 36550, 36551, 36552, median of 3, min 13.07 s, max 13.24 s). It reproduces the serial checksum and is 6.24× faster than the serial 81.95 s, but it is five times slower than the best one-node CPU result, 2.62 s. `t_kernel` and `t_with_copies` are the same, because this run never leaves the CPU. The two Ada GPUs were already taken; the CUDA build (job 36548) is queued until 26 Nov, so the CUDA row is not filled. Figures: `results/figures/e10_time.png` and `results/figures/e10_speedup.png`.
