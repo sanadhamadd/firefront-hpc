@@ -206,8 +206,8 @@ flowchart LR
     P0["Phase 0 ✓<br/><b>Sanad</b><br/>serial code, tests,<br/>repo setup"] --> P1["Phase 1<br/><b>Alicia</b><br/>cluster check, ignitions,<br/>OpenMP runs, tools, STREAM"]
     P1 --> P2["Phase 2<br/><b>Sanad</b><br/>MPI: strips, blocks,<br/>halo exchange"]
     P2 --> P3a["Phase 3a<br/><b>Alejandro</b><br/>hybrid experiments"]
-    P2 --> P3b["Phase 3b<br/><b>Rodrigo</b><br/>overlap + profiling"]
-    P2 --> P3c["Phase 3c<br/><b>Khadeja</b><br/>GPU port"]
+    P2 --> P3b["Phase 3b<br/><b>Khadeja</b><br/>overlap + profiling"]
+    P2 --> P3c["Phase 3c<br/><b>Rodrigo</b><br/>GPU port"]
     P3a --> P4["Phase 4<br/><b>Everyone</b><br/>report, slides,<br/>scale-up plan"]
     P3b --> P4
     P3c --> P4
@@ -219,8 +219,8 @@ flowchart LR
 | 1 | Alicia | Tag `v0.2-cluster`: E1 + thread-scaling logs, numbers in [docs/handover.md](docs/handover.md) |
 | 2 | Sanad | Tag `v0.3-mpi`: same checksum as serial for every rank count; E2 + E5 logs |
 | 3a | Alejandro | Hybrid E3, E4, E6 and the scaling figures |
-| 3b | Rodrigo | Overlap optimization, E7, E8, bottleneck evidence |
-| 3c | Khadeja | GPU kernel, E9, CPU vs GPU table |
+| 3b | Khadeja | Overlap optimization, E7, E8, bottleneck evidence |
+| 3c | Rodrigo | GPU kernel, E9, CPU vs GPU table |
 | 4 | Everyone | Report, `REPRODUCE.md`, EuroHPC plan, slides (one per person) |
 
 Nobody starts a phase until the previous tag passes the checksum test. Phase 3 names can be swapped. The full task lists are in section 9 of the proposal.
