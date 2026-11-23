@@ -153,6 +153,15 @@ int main(int argc, char **argv)
     quiet_end();
     if (bad_options)
         return finish(1);
+#if defined(USE_CUDA) || defined(USE_ACC)
+    /* E8 tile skipping changes which cells are visited. The GPU step always visits
+       every cell, so a request to skip would silently disagree with the CPU builds. */
+    if (p.skip_tiles > 0) {
+        if (rank == 0)
+            fprintf(stderr, "--skip-tiles is a CPU-only optimisation (E8); the GPU build does not implement it\n");
+        return finish(1);
+    }
+#endif
 
     int threads = 1;
 #ifdef _OPENMP
@@ -212,6 +221,9 @@ int main(int argc, char **argv)
         if (!p.verify_only && step == warmup && warmup > 0) {
             barrier();
             sim_reset_times(sim);
+#if defined(USE_CUDA) || defined(USE_ACC)
+            sim_device_sync(sim);   /* warm-up kernels finished before the clock starts */
+#endif
             t_start = wall_seconds();
         }
     }
@@ -222,6 +234,9 @@ int main(int argc, char **argv)
         sim_free(sim);
         return finish(0);
     }
+#if defined(USE_CUDA) || defined(USE_ACC)
+    sim_device_sync(sim);   /* the clock stops when the last kernel has finished, not when it was launched */
+#endif
     double t_mine = (p.steps > 0) ? wall_seconds() - t_start : 0.0;
 
     double t_halo_mine, t_compute_mine;
@@ -277,6 +292,16 @@ int main(int argc, char **argv)
         /* E8: tile edge (0 = off) and the share of tile updates that were computed */
         printf(" skip_tiles=%d active_tiles=%.4f", p.skip_tiles,
                tiles_total > 0.0 ? tiles_updated / tiles_total : 1.0);
+#if defined(USE_CUDA) || defined(USE_ACC)
+        {
+            double t_kernel, t_with_copies;
+            sim_device_times(sim, &t_kernel, &t_with_copies);
+            /* t_kernel: device time of the timed steps. t_with_copies adds the one
+               upload of fuel, elevation and state and the one download of the state.
+               The grid stays on the device between steps, so there is no copy per step. */
+            printf(" t_kernel=%.4f t_with_copies=%.4f", t_kernel, t_with_copies);
+        }
+#endif
         putchar('\n');
     }
 

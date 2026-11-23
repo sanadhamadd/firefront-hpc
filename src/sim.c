@@ -14,6 +14,7 @@
 #include "rng.h"
 #include "rules.h"
 #include "timers.h"
+#include "update.h"
 
 struct Sim {
     Params p;              /* p.nx, p.ny are the size of the whole (global) grid */
@@ -86,33 +87,6 @@ static void ignite_patch(Sim *s, int ix, int iy)
     }
 }
 
-/*
- * Top left cell of ignition patch k (0-based) when --ignitions is above 1.
- * The place only depends on the seed, k and the global grid size, so every
- * MPI rank can compute all of them and keep the ones inside its own part.
- * A place whose patch would touch the river is skipped and the next draw is used.
- */
-void sim_ignition_place(const Params *p, int k, int *x, int *y)
-{
-    int river = landscape_river_column(p->nx);
-    int found = 0;
-    for (uint64_t draw = 0; ; draw++) {
-        uint64_t h = mix64(p->seed ^ 0xA5A5F00DCAFE1234ULL
-                           ^ (draw * 0x9E3779B97F4A7C15ULL));
-        int px = (int)((h >> 32) % (uint64_t)(p->nx - 2));
-        int py = (int)((h & 0xFFFFFFFFULL) % (uint64_t)(p->ny - 2));
-        int on_river = p->river && px + 2 >= river && px < river + 3;
-        if (on_river)
-            continue;
-        if (found == k) {
-            *x = px;
-            *y = py;
-            return;
-        }
-        found++;
-    }
-}
-
 Sim *sim_create(const Params *p)
 {
     Sim *s = calloc(1, sizeof *s);
@@ -124,7 +98,7 @@ Sim *sim_create(const Params *p)
     }
     s->stride = s->d.nx + 2;
     s->step = 0;
-    rules_init(&s->rules, p);
+    rules_build(&s->rules, p);
     halo_init(&s->halo, &s->d);
 
     size_t n = grid_cells(&s->d);
@@ -182,45 +156,6 @@ void sim_free(Sim *s)
     halo_free(&s->halo);
     decomp_free(&s->d);
     free(s);
-}
-
-/* The cell rule: write the new state of own cell (r, c), index i = r * stride + c.
-   Used by the normal loop and by update_tiles. always_inline: without it, Apple clang
-   made the normal loop about 13 % slower than when the rule was written inside it
-   (2048^2, 200 steps); with it the speed is the same as before. */
-static inline __attribute__((always_inline))
-void cell_update(const Sim *s, const uint8_t *old, uint8_t *new_, const int offset[8],
-                 int B, int r, int c, int i, uint64_t step)
-{
-    const Rules *rules = &s->rules;
-    uint8_t st = old[i];
-
-    if (st == STATE_BURNT) {
-        new_[i] = STATE_BURNT;
-    } else if (st >= 1) {                       /* burning */
-        new_[i] = (st >= B) ? STATE_BURNT : (uint8_t)(st + 1);
-    } else if (s->fuel[i] <= 0.0f) {
-        new_[i] = STATE_UNBURNT;                /* nothing here can burn */
-    } else {
-        float keep = 1.0f;                      /* chance of not catching fire */
-        int any = 0;
-        for (int d = 0; d < 8; d++) {
-            if (!is_burning(old[i + offset[d]], B))
-                continue;
-            any = 1;
-            float rise = s->elev[i] - s->elev[i + offset[d]];
-            float prob = rules->base * s->fuel[i] * rules->dir[d]
-                       * rules->slope[rules->diagonal[d]][slope_index(rise)];
-            if (prob > 1.0f) prob = 1.0f;
-            keep *= 1.0f - prob;
-        }
-        new_[i] = STATE_UNBURNT;
-        if (any) {
-            uint64_t cell = global_cell(s, r, c);
-            if (cell_uniform(s->p.seed, cell, step) < 1.0f - keep)
-                new_[i] = 1;
-        }
-    }
 }
 
 /* 1 if old_state has a burning cell in rows r0..r1, columns c0..c1 (local, may include
@@ -308,7 +243,8 @@ static void update_tiles(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
         for (int r = a; r <= b; r++) {
             for (int col = c; col <= d; col++) {
                 int i = r * stride + col;
-                cell_update(s, old, new_, offset, B, r, col, i, step);
+                ff_cell_update(&s->rules, s->fuel, s->elev, old, new_, offset, B, i,
+                               s->p.seed, global_cell(s, r, col), step);
                 burning += is_burning(new_[i], B);
             }
         }
@@ -347,7 +283,10 @@ static void update_block(Sim *s, int r0, int r1, int c0, int c1, uint64_t step)
     for (int r = r0; r <= r1; r++) {
         for (int c = c0; c <= c1; c++) {
             int i = r * stride + c;
-            cell_update(s, old, new_, offset, B, r, c, i, step);
+            /* ff_cell_update is always_inline: Apple clang was ~13 % slower when this
+               rule was an ordinary call (2048^2, 200 steps). */
+            ff_cell_update(&s->rules, s->fuel, s->elev, old, new_, offset, B, i,
+                           s->p.seed, global_cell(s, r, c), step);
         }
     }
 }
