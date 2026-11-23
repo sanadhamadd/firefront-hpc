@@ -20,11 +20,17 @@ The scripts **build nothing**. Build on a compute node first, wait for the job t
 | e5_decomp.sbatch | E5 and the MPI part of E2: pure MPI (1 thread per rank), 8192², 400 steps, 16 ignitions; ranks and nodes from the sbatch line, `DECOMP=strips\|blocks`; Open MPI with `ob1` + shared memory + TCP (the default UCX layer crashed in 2-node runs); prints `checksum ok` if it matches E1 |
 | submit_e5.sh | submits the E5 series (51 jobs) and waits whenever 8 jobs are queued; `DRY_RUN=1` only prints |
 | hybrid.sbatch | MPI + OpenMP (E3), default 2 nodes × 4 ranks × 4 cores, `--overlap 0`, same problem as E1; prints `checksum ok` |
-| gpu.sbatch | CUDA build on one GPU (waits for `firefront_cuda`) |
+| gpu_build.sbatch | build `firefront_cuda` on one RTX 6000 Ada and check the serial checksums, including E1 |
+| gpu.sbatch | E10: CUDA, E1 problem, one repetition, checksum gate. Three jobs |
+| gpu_sweep.sbatch | E10 size sweep, one grid size per job (`NX=`), same GPU type |
+| acc_build.sbatch | build OpenACC GPU and multicore and check the checksums. After CUDA |
+| acc.sbatch | OpenACC on the same RTX 6000 Ada, E1, one repetition |
+| acc_mc_build.sbatch | build OpenACC multicore on haskell (no GPU) and check the E1 checksum. Fallback when the GPU queue does not start |
+| acc_mc.sbatch | OpenACC multicore on 32 cores of haskell, one repetition of E1 |
 | size_sweep.sbatch | 32 threads, grids 2048², 4096², 8192², 16384²; second pass with `--humidity 1` (no spread); does the cache change the throughput? |
 | job_helpers.sh | shared functions the jobs source: node state, job resources, run with `numastat` |
 
-**Limits** (student QOS, see `env/cluster.md`): at most 64 CPUs per user at a time, which is 32 cores because Slurm counts both hardware threads of a core; at most 4 running and 8 queued jobs. E2 and STREAM therefore ask for `--cpus-per-task=64 --hint=multithread` (32 whole cores) and run their thread series inside one job. STREAM thus measures the bandwidth available to 32 cores, not to the whole node.
+**Limits** (student QOS, see `env/cluster.md`): at most 64 CPUs per user at a time, which is 32 cores because Slurm counts both hardware threads of a core; at most 4 jobs running, and at most 8 submitted in total (running and pending together). GPU jobs use their own names (`ff-gpu`, `ff-acc`), so they are not held behind the cpu singleton. E2 and STREAM therefore ask for `--cpus-per-task=64 --hint=multithread` (32 whole cores) and run their thread series inside one job. STREAM thus measures the bandwidth available to 32 cores, not to the whole node.
 
 **Timing noise.** The cpu partition lets two jobs share the same cores (`OverSubscribe=FORCE:2`), and `--exclusive` cannot prevent that, so the scripts do not use it. Instead:
 - build, E1, E2 and STREAM have the same job name and `--dependency=singleton`, so only one of them runs at a time and our own jobs never compete;
