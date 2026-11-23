@@ -1,0 +1,2 @@
+variant,nx,ny,steps,ignitions,reps,checksum,checksum_ok,t_kernel_med,t_kernel_min,t_kernel_max,t_with_copies_med,t_with_copies_min,t_with_copies_max,cpu_best_s,cpu_best_label,speedup_kernel,speedup_with_copies
+accmc,8192,8192,400,16,3,0xb8683c550fa95bd6,yes,13.1269,13.0745,13.2364,13.1269,13.0745,13.2364,2.6198,"MPI 32, 1 node",0.19957491867843896,0.19957491867843896
