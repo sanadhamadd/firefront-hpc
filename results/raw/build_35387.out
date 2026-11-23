@@ -1,0 +1,100 @@
+mpicc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc  mpirun: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen2/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpirun
+mpirun (Open MPI) 4.1.6
+== node state (start) ==
+node: haskell
+time: 2026-11-22T17:05:02+01:00
+load: 3.52 5.10 20.75 3/7542 79703
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     35387        cpu   self  R       0:01      8       4G haskell
+  35324_21        gpu  other  R       5:39      8      96G haskell
+  35324_20        gpu  other  R       5:51      8      96G haskell
+     35352 interactive  other  R      20:51      2       4G haskell
+== -march that gcc picks on this node ==
+  -march=                     		znver4
+  Known valid arguments for -march= option:
+rm -rf build
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"dd8ea11\" -DVARIANT=\"serial\" -o build/firefront_serial src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"dd8ea11\" -DVARIANT=\"omp\" -o build/firefront_omp src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DGIT_COMMIT=\"dd8ea11\" -o build/stream src/bench/stream.c
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"dd8ea11\" -Isrc -o build/test_model tests/test_model.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+gcc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -Isrc -o build/test_decomp tests/test_decomp.c src/decomp.c
+./build/test_model
+rng
+repeatable
+burnt cells never decrease
+fire goes out
+wind pushes the fire downwind
+  reach east 39 cells, west 0 cells
+fire does not cross the firebreak
+  burnt 4499 cells, 0 of them beyond the river
+several ignitions
+  burnt with 1 ignition 14155, with 16 ignitions 38378
+landscape blocks match the whole grid
+  9 blocks, 0 cells differ
+
+all checks passed
+./build/test_decomp
+split of a length into pieces
+one rank owns the whole grid
+
+all decomposition checks passed
+bash tests/run_all.sh
+ok:   two runs give the same checksum
+ok:   another seed changes the checksum
+ok:   RESULT line has all fields
+ok:   tiny grid is rejected
+ok:   --ignitions 0 is rejected
+ok:   --ignitions 1 gives the same checksum as before
+ok:   default 1024 x 1024, 100 steps keeps its reference checksum
+ok:   --overlap 1 requires MPI
+ok:   verification emits only the checksum record
+ok:   RESULT line reports the humidity used
+ok:   --skip-tiles 1, 5, 64, 5000 give the same checksum (--nx 1024 --ny 1024 --steps 100)
+ok:   --skip-tiles 1, 5, 64, 5000 give the same checksum (--nx 203 --ny 157 --steps 150 --ignitions 7)
+ok:   --skip-tiles 1, 5, 64, 5000 give the same checksum (--nx 120 --ny 90 --steps 300 --river 0 --ignite 0,0 --humidity 0)
+ok:   --skip-tiles 1, 5, 64, 5000 give the same checksum (--nx 333 --ny 211 --steps 250 --ignitions 12 --burn-steps 7 --seed 11)
+ok:   --skip-tiles -1 is rejected
+ok:   RESULT line reports skip_tiles=0 and active_tiles=1 by default
+ok:   OpenMP (gcc) runs with 1 thread(s)
+ok:   OpenMP with 1 thread(s) gives the serial checksum
+ok:   OpenMP with 1 thread(s) and --skip-tiles 32 gives the serial checksum
+ok:   OpenMP (gcc) runs with 2 thread(s)
+ok:   OpenMP with 2 thread(s) gives the serial checksum
+ok:   OpenMP with 2 thread(s) and --skip-tiles 32 gives the serial checksum
+ok:   OpenMP (gcc) runs with 4 thread(s)
+ok:   OpenMP with 4 thread(s) gives the serial checksum
+ok:   OpenMP with 4 thread(s) and --skip-tiles 32 gives the serial checksum
+ok:   OpenMP (gcc) runs with 8 thread(s)
+ok:   OpenMP with 8 thread(s) gives the serial checksum
+ok:   OpenMP with 8 thread(s) and --skip-tiles 32 gives the serial checksum
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -fopenmp -DUSE_MPI -DGIT_COMMIT=\"dd8ea11\" -DVARIANT=\"mpi\" -o build/firefront_mpi src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c -lm
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DUSE_MPI -Isrc -o build/test_decomp_mpi tests/test_decomp_mpi.c src/decomp.c
+mpicc -O3 -march=native -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DUSE_MPI -Isrc -o build/test_halo_mpi tests/test_halo_mpi.c src/decomp.c src/halo.c
+bash tests/run_mpi.sh
+== split and halo, 1 rank(s)
+== split and halo, 2 rank(s)
+== split and halo, 3 rank(s)
+== split and halo, 4 rank(s)
+== split and halo, 8 rank(s)
+ok:   split and halo tests on ranks: 1 2 3 4 8
+checked: --nx 1024 --ny 1024 --steps 100 (serial 0x74cfadfb78e73134)
+checked: --nx 203 --ny 157 --steps 150 --ignitions 7 (serial 0x87f92fb6443fc16f)
+checked: --nx 157 --ny 203 --steps 150 --ignitions 7 --seed 3 (serial 0x4811f4ad2161b53b)
+checked: --nx 300 --ny 64 --steps 200 --ignitions 5 --wind-dir 90 --wind-speed 10 (serial 0x459847650542b857)
+checked: --nx 512 --ny 512 --steps 100 --ignitions 16 --humidity 0.4 (serial 0x0a8441afacf36287)
+checked: --nx 4 --ny 9 --steps 19 --river 0 --ignite 1,2 --seed 203 (serial 0xb0bb85f44584606b)
+ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=0, skip-tiles=0
+ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=0, skip-tiles=8
+ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=1, skip-tiles=0
+ok:   2 ranks x 2 threads (if OpenMP enabled), overlap=1, skip-tiles=8
+ok:   snapshots from 2, 3 and 6 ranks equal the serial one
+ok:   one RESULT line with ranks=6, blocks, 3 x 2 process grid
+ok:   a bad option is reported once
+all MPI checks passed
+== node state (end) ==
+node: haskell
+time: 2026-11-22T17:16:36+01:00
+load: 3.33 3.00 11.24 1/7351 99336
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     35387        cpu   self  R      11:35      8       4G haskell
+     35352 interactive  other  R      32:25      2       4G haskell
