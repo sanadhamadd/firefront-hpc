@@ -1,0 +1,46 @@
+gcc: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc 13.2.0 CC=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc
+nvc: /data/software/tools/nvhpc/Linux_x86_64/25.7/compilers/bin/nvc
+== node state (start) ==
+node: haskell
+time: 2026-11-23T15:57:55+01:00
+load: 2.20 2.22 2.35 4/7387 813905
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     36270        gpu  other  R    8:55:00      8      96G haskell
+     36271        gpu  other  R   10:33:04      8      96G haskell
+     36549 interactive   self  R       0:01      8       8G haskell
+== resources of this job ==
+cpus usable: 6,9-11,262,265-267
+physcpubind: 6 9 10 11 262 265 266 267 
+nodebind: 0 
+membind: 0 1 
+NumCPUs=8
+TRES=cpu=8,mem=8G,node=1,billing=8
+TRES=cpu=8,mem=8G,node=1,billing=8
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"80d92af\" -DVARIANT=\"serial\" -o build/firefront_serial src/main.c src/sim.c src/params.c src/landscape.c src/decomp.c src/halo.c src/ignite.c src/rules_build.c -lm
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -DGIT_COMMIT=\"80d92af\" -DUSE_ACC -DVARIANT=\"accmc\" -c -o build/gpu_main_acc_mc.o src/main.c
+nvc -acc=multicore -Mnofma -O3 -Minfo=accel -DUSE_ACC -c -o build/step_acc_mc.o src/step_acc.c
+sim_step:
+    160, Generating Multicore code
+        162, #pragma acc loop gang
+          45, Scalar last value needed after loop for .inl_any_121 at line 55
+count_where:
+    232, Generating Multicore code
+        234, #pragma acc loop gang
+             Generating reduction(+:total)
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -c -o build/gpu_params.o src/params.c
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -c -o build/gpu_landscape.o src/landscape.c
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -c -o build/gpu_decomp.o src/decomp.c
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -c -o build/gpu_ignite.o src/ignite.c
+/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/amd/zen4/software/GCCcore/13.2.0/bin/gcc -O3 -march=znver4 -std=c11 -Wall -Wextra -ffp-contract=off -D_POSIX_C_SOURCE=200809L -c -o build/gpu_rules.o src/rules_build.c
+nvc -acc=multicore -Mnofma -O3 -Minfo=accel -o build/firefront_acc_mc build/gpu_main_acc_mc.o build/step_acc_mc.o build/gpu_params.o build/gpu_landscape.o build/gpu_decomp.o build/gpu_ignite.o build/gpu_rules.o -lm
+ok: acc-mc --nx 96 --ny 80 --steps 25 --seed 4 --ignitions 3
+ok: acc-mc E1
+acc multicore checksums ok
+== node state (end) ==
+node: haskell
+time: 2026-11-23T15:59:03+01:00
+load: 7.59 3.79 2.89 3/7381 817164
+     JOBID  PARTITION    WHO ST       TIME   CPUS MIN_MEMO NODELIST
+     36270        gpu  other  R    8:56:08      8      96G haskell
+     36271        gpu  other  R   10:34:12      8      96G haskell
+     36549 interactive   self  R       1:09      8       8G haskell

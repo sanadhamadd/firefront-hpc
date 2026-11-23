@@ -5,8 +5,8 @@ Speaker notes for Rodrigo. One slide. The GPU numbers go on the slide only after
 ## What to put on the slide
 
 - Title: one more technology, and what we would take to a larger machine.
-- The E1 picture, once the logs exist: median of 3 on one RTX 6000 Ada, kernel time and time with the two copies, next to the best one-node CPU time (MPI, 32 ranks, blocks, 2.62 s). Error bars are min–max. Figure: `results/figures/e10_time.png`.
-- The matrix from §8, cut to one line per technology: speed-up, effort, what stops it. CPU rows are filled. GPU rows wait for `e10_summary.csv`.
+- The E1 picture that exists today: OpenACC on 32 cores, median 13.13 s (min 13.07, max 13.24), checksum identical to serial. It is 6.24× serial and 0.20× the best one-node CPU time (MPI, 32 ranks, blocks, 2.62 s). Figure: `results/figures/e10_time.png`. Leave a blank for the Ada result until job 36548 runs.
+- The matrix from §8, cut to one line per technology: speed-up, effort, what stops it. The CUDA and OpenACC-GPU rows stay empty.
 - Three lessons, below.
 - Sanad's line, still a placeholder: **EuroHPC node-hours: [Sanad fills this].**
 

@@ -22,8 +22,12 @@ source slurm/job_helpers.sh
 
 module purge
 module load GCC/13.2.0 || exit 1
+GCC_BIN=$(command -v gcc)
 module load nvhpc/25.7 || exit 1
-echo "gcc: $(command -v gcc) $(gcc -dumpversion)"
+# nvhpc sets CC=nvc and puts the system gcc first. Host objects must stay on GCC 13.2.
+export CC=$GCC_BIN
+export PATH="$(dirname "$GCC_BIN"):$PATH"
+echo "gcc: $(command -v gcc) $(gcc -dumpversion) CC=$CC"
 echo "nvc: $(command -v nvc)"
 
 node_state start

@@ -166,7 +166,7 @@ Note: the build job now runs about 11–12 minutes because `make test-mpi` also 
 
 ### E10 – GPU port (CUDA, OpenACC)
 
-Branch `rodrigo/e10-gpu`. The commit to cite is the head of that branch until it is merged; after merge, cite the merge commit on `main`. Job IDs are filled in below once the jobs have run. This machine cannot log in to SciTech, so the IDs are still empty.
+Code commit on `main`: `80d92af` (merge of PR 8). The runs below are on `rodrigo/e10-results`.
 
 | | |
 |---|---|
@@ -177,10 +177,13 @@ Branch `rodrigo/e10-gpu`. The commit to cite is the head of that branch until it
 | Device | `sm_89`, `nvcc --fmad=false` |
 | Binaries | `build/firefront_cuda`, `build/firefront_acc`, `build/firefront_acc_mc` |
 | E1 checksum | `0xb8683c550fa95bd6` |
-| Build job | |
-| E1 CUDA jobs | |
-| Sweep jobs | |
-| OpenACC jobs | |
+| CUDA build | 36548, still pending on 23 Nov (scheduler start 26 Nov 03:01). Both RTX 6000 Ada were busy |
+| E1 CUDA jobs | not submitted; the build has not produced a checksum yet |
+| Sweep jobs | not submitted |
+| OpenACC multicore build | 36549, partition `interactive` on haskell, `acc multicore checksums ok` including E1 |
+| OpenACC multicore E1 | 36550, 36551, 36552. All three print `checksum ok` and `0xb8683c550fa95bd6`. Median `t_kernel` 13.1269 s (min 13.0745, max 13.2364) |
+
+The `cpu` partition would not start a job pinned to haskell while that node was held for the GPU partition, so 36549 and 36550–36552 were submitted with `--partition=interactive`. Same node, same binary.
 
 On the login node (`rust`), from a checkout of this branch:
 
