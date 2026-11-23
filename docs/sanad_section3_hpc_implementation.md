@@ -1,0 +1,25 @@
+# Report draft: section 3
+
+Draft by Sanad. Target ≈ 0.75 page with one figure. §2 (Alicia) already explains the model, the hash-based random numbers, the landscape from global coordinates and the checksum; this section only covers how the code is parallelised and how we check it. The two optimisations (overlap, tile skipping) are described in §7 and the GPU port in §8; here they get one sentence each.
+
+---
+
+## 3. HPC implementation
+
+One C11 code base builds every version: serial, OpenMP, MPI + OpenMP, CUDA and OpenACC (`make`, `make omp`, `make mpi`, `make cuda`, `make acc`). All CPU builds use `-O3 -march=native -ffp-contract=off`, so every version does the same floating-point operations in the same order and must give the serial checksum bit for bit.
+
+**Shared memory (OpenMP).** The cell update is one loop over the rows with `#pragma omp parallel for schedule(static)`. Each step reads the old state grid and writes the new one, so no two threads ever write the same cell and there are no locks or atomics. The landscape is filled in a parallel loop with the same schedule, so each page of memory is first touched, and therefore placed, by the thread that later updates it. Threads are pinned one per physical core (`OMP_PROC_BIND=close`, `OMP_PLACES=cores`).
+
+**Distributed memory (MPI).** The ranks form a two-dimensional Cartesian grid (`MPI_Cart_create`, no periodic edges). With `--decomp strips` the grid is cut into P horizontal strips of whole rows; with `--decomp blocks` `MPI_Dims_create` chooses a near-square process grid. Each rank allocates only its own block plus a border of one cell, builds its part of the landscape from global coordinates and draws its random numbers with global cell numbers (§2), so the split never changes the result. Uneven sizes go to the first ranks; neighbours outside the grid are `MPI_PROC_NULL`, so edge ranks need no special code. MPI is initialised with `MPI_THREAD_FUNNELED`: only the main thread calls MPI, and the OpenMP loop runs inside each rank, which gives the hybrid version (E3) without a second code path.
+
+**Halo exchange.** Before every step each rank needs the cells of its eight neighbours. To avoid four extra diagonal messages, the exchange runs in two phases with blocking `MPI_Sendrecv`: first the top and bottom rows go north and south; then the left and right columns go west and east, including the two halo rows just received. A corner cell of the north-west neighbour therefore reaches a rank through its west neighbour. Columns are not contiguous in memory, so they are described by an `MPI_Type_vector` (one byte per row) and sent without packing them ourselves. A strip rank sends two messages of one row each per step; a block rank sends up to four shorter ones.
+
+*Place Figure here:* `docs/img/halo_exchange.png`. **Caption.** Strips vs blocks: a strip rank exchanges two whole rows; a block rank exchanges four shorter edges, in two phases (rows, then columns including the halo rows), so the corner cells arrive without diagonal messages.
+
+**Global operations.** The burnt area is summed with `MPI_Allreduce` only every 50 steps, not every step, because a global reduction is a synchronisation point for all ranks. At the end the checksum and the cell counts are combined with one more `MPI_Allreduce`; an optional picture of the final state is put together on rank 0 with `MPI_Gatherv`.
+
+**Hooks for the optimisations.** The update of any rectangle of a rank's cells is one function, so the overlapped exchange of E7 (`--overlap 1`, §7) posts non-blocking sends and receives, updates the interior, waits, and then updates the one-cell boundary ring. Tile skipping (E8, `--skip-tiles T`, §7) replaces the row loop with a loop over T × T tiles, scheduled dynamically. The CUDA and OpenACC versions (§8) call the same cell function (`src/update.h`) and keep the whole grid on the GPU between steps.
+
+**Timing.** All ranks start the clock together after a barrier at the end of a 10-step warm-up. Each rank times its halo exchange, its cell updates and its reductions separately; the `RESULT` line reports the slowest rank for each, plus the compute imbalance (slowest rank's compute time over the average). These timers are the profiling data of §6.
+
+**Correctness checks.** `make test` checks the model and that OpenMP with 1–8 threads gives the serial checksum. `make test-mpi` checks the split (every cell owned exactly once, correct neighbours), the halo exchange (every border cell, corners included, twice in a row) and the checksum against serial on 1, 2, 3, 4, 6 and 8 ranks, with strips, blocks, uneven grid sizes and the hybrid build, and that a picture from 2, 3 and 6 ranks equals the serial one. On the cluster the build job runs both test suites, and every timed job compares its checksum with the reference before its time is used: all MPI runs of E2–E5 gave the serial checksum for their grid (`0xb8683c550fa95bd6` for 8192²). Two-node runs exposed one problem outside our code: Open MPI's default network layer (UCX) crashed at start-up in some configurations, so all MPI jobs use the `ob1` layer with shared memory and TCP (§4).
