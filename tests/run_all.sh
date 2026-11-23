@@ -99,4 +99,11 @@ else
     echo "skipped: OpenMP checksum test ($omp_cc cannot build with -fopenmp; set OMP_CC, e.g. OMP_CC=gcc-16)"
 fi
 
+if ! bash tests/run_cuda.sh; then
+    fail=1
+fi
+if ! bash tests/run_acc.sh; then
+    fail=1
+fi
+
 exit $fail

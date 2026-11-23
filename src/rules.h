@@ -6,6 +6,14 @@
 
 #include "params.h"
 
+#ifndef FF_HD
+#if defined(__CUDACC__)
+#define FF_HD __host__ __device__
+#else
+#define FF_HD
+#endif
+#endif
+
 /* cell states: 0 = unburnt, 1..burn_steps = burning (age), BURNT = burnt out */
 #define STATE_UNBURNT 0
 #define STATE_BURNT   255
@@ -60,8 +68,15 @@ static inline void rules_init(Rules *r, const Params *p)
     }
 }
 
+/* One out-of-line copy (src/rules_build.c), compiled with the CPU flags.
+   Serial and both GPU builds call it, so nvcc and nvc never rebuild the tables. */
+void rules_build(Rules *r, const Params *p);
+
 /* index into the slope table for a height difference (target minus neighbour, metres) */
-static inline int slope_index(float rise)
+#ifdef _OPENACC
+#pragma acc routine seq
+#endif
+FF_HD static inline int slope_index(float rise)
 {
     int q = (int)(rise >= 0.0f ? rise + 0.5f : rise - 0.5f);
     if (q > SLOPE_MAX) q = SLOPE_MAX;
@@ -69,7 +84,10 @@ static inline int slope_index(float rise)
     return q + SLOPE_MAX;
 }
 
-static inline int is_burning(uint8_t s, int burn_steps)
+#ifdef _OPENACC
+#pragma acc routine seq
+#endif
+FF_HD static inline int is_burning(uint8_t s, int burn_steps)
 {
     return s >= 1 && s <= burn_steps;
 }

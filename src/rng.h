@@ -3,8 +3,19 @@
 
 #include <stdint.h>
 
+#ifndef FF_HD
+#if defined(__CUDACC__)
+#define FF_HD __host__ __device__
+#else
+#define FF_HD
+#endif
+#endif
+
 /* 64-bit mixing function (the finalizer of SplitMix64). */
-static inline uint64_t mix64(uint64_t x)
+#ifdef _OPENACC
+#pragma acc routine seq
+#endif
+FF_HD static inline uint64_t mix64(uint64_t x)
 {
     x ^= x >> 30;
     x *= 0xBF58476D1CE4E5B9ULL;
@@ -20,7 +31,10 @@ static inline uint64_t mix64(uint64_t x)
  * It only depends on the seed, the global cell index and the step number, so
  * the result does not change when the grid is split over ranks or threads.
  */
-static inline float cell_uniform(uint64_t seed, uint64_t cell, uint64_t step)
+#ifdef _OPENACC
+#pragma acc routine seq
+#endif
+FF_HD static inline float cell_uniform(uint64_t seed, uint64_t cell, uint64_t step)
 {
     uint64_t x = seed ^ (cell * 0x9E3779B97F4A7C15ULL);
     x ^= step * 0xD1B54A32D192ED03ULL;
