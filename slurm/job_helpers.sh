@@ -5,6 +5,22 @@
 # env/cluster.md), so every job writes down who else was on the node, to judge the
 # timings afterwards.
 
+# Batch jobs are not login shells, so `module` is missing unless the submitter
+# exported it. Load the same files a login on rust would.
+if ! command -v module >/dev/null 2>&1; then
+    [ -f /etc/profile.d/lmod.sh ] && . /etc/profile.d/lmod.sh
+fi
+# Login shells also load EESSI and /data/software/modules. GCC lives in EESSI;
+# the course CUDA and nvhpc modules live under /data/software/modules.
+if [ -f /etc/profile.d/z01_eessi.sh ]; then
+    . /etc/profile.d/z01_eessi.sh
+fi
+if command -v module >/dev/null 2>&1; then
+    module use /data/software/modules >/dev/null 2>&1 || true
+fi
+[ -f /etc/profile.d/hpc.sh ] && . /etc/profile.d/hpc.sh
+
+
 # node name, load average and the other jobs on our node(s); call with "start" or "end".
 # No user or job names are logged (the logs go into a public repository): our own jobs
 # show as "self", everyone else's as "other"; job id, partition, state, run time, CPUs
