@@ -7,7 +7,8 @@
 | `capture_env.sh` | environment snapshot for each batch of runs | works |
 | `cluster_info.sh` | what the cluster has: partitions, CPU, NUMA, modules, MPI plugins, GPUs (safe on the login node) | works; output in `env/cluster_info.txt` |
 | `parse_logs.py` | turn the RESULT lines of the `.out` logs in a folder into one CSV (unknown keys get their own column) | works |
-| `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs physical cores (median of repetitions, min/max error bars; `places=threads` runs as a separate star) | works |
+| `make_plots.py` | wall time, speed-up, efficiency and MCUPS vs physical cores (median of repetitions, min/max error bars; `places=threads` runs as a separate star). Rows with variant `cuda`, `acc` or `accmc`, and logs named `gpu*`, are left out | works |
+| `plot_e10.py` | E10 time and speed-up from the GPU logs, median of the repetitions with min/max, against the best one-node CPU time | works once the logs are in `results/raw/` |
 | `roofline.py` | max cell updates per second from a STREAM bandwidth in GB/s: 6 B per update (default, counted from the code, like STREAM without write-allocate), 7 B with write-allocate (against bandwidth × 4/3) and the old 10-B model; prints all three | works |
 | `anonymize_logs.py` | replace user and job names in old job logs: own account -> self, others -> user1, job1 ...; the mapping is never saved | works |
 | `make_landscape.py` | prepare real terrain data | to do (optional) |

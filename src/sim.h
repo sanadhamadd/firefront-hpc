@@ -13,6 +13,15 @@ void sim_free(Sim *s);
 /* advance the fire by one time step */
 void sim_step(Sim *s);
 
+#if defined(USE_CUDA) || defined(USE_ACC)
+/* Wait until the device has finished the steps already launched.
+   The CPU builds do not have this: their sim_step returns only when the step is done. */
+void sim_device_sync(const Sim *s);
+/* Timed steps only, from device events (CUDA) or from the loop itself (OpenACC),
+   and that time plus the one upload of the grids and the one download of the state. */
+void sim_device_times(const Sim *s, double *t_kernel, double *t_with_copies);
+#endif
+
 int sim_steps_done(const Sim *s);
 
 /* this rank's time in the halo exchange and in the cell updates, summed over the steps
