@@ -1,43 +1,55 @@
 #!/bin/bash
-# Single GPU run, one repetition per job. Keep it short, the GPUs are shared.
-# Not usable yet: build/firefront_cuda does not exist (phase 3c).
+# E10, one repetition of the E1 problem on one RTX 6000 Ada.
+# 8192 x 8192, 400 steps, 16 ignitions, seed 42. The checksum must be the serial one.
 #
-# This script builds nothing: build the CUDA version with a job like slurm/build.sbatch, once it exists.
-# Submit from the repository root, e.g. 3 repetitions:
-#   for rep in 1 2 3; do sbatch --export=ALL,NX=8192,REP=$rep slurm/gpu.sbatch; done
+# This script builds nothing. Submit slurm/gpu_build.sbatch first and wait for
+# "cuda checksums ok". From the repository root, three repetitions (one job each):
+#   for rep in 1 2 3; do sbatch slurm/gpu.sbatch; done
+# The student QOS allows 4 running jobs and 8 submitted in total (running + pending),
+# so do not add the size sweep until these three have started or finished.
 #SBATCH --job-name=ff-gpu
 #SBATCH --output=results/raw/gpu_%j.out
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=2
-#SBATCH --mem=4G
-#SBATCH --time=00:10:00
-# The two nodes have different GPUs (rtx6000ada on one, rtx6000bb on the other, see env/cluster.md).
-# To compare runs, always ask for the same type, e.g. --gres=gpu:rtx6000ada:1.
+#SBATCH --gres=gpu:rtx6000ada:1
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=16G
+#SBATCH --time=00:15:00
 
-NX=${NX:-8192}
-STEPS=${STEPS:-500}
-REP=${REP:-1}
+NX=8192
+NY=8192
+STEPS=400
+SEED=42
+IGNITIONS=16
+REFERENCE=0xb8683c550fa95bd6
 
 source slurm/job_helpers.sh
 
 module purge
-module load hpc-course-cuda/12.8.1   # for the OpenACC version: nvhpc/25.7, see env/modules.txt
+module load hpc-course-cuda/12.8.1 || exit 1
 
 bin=./build/firefront_cuda
 if [ ! -x "$bin" ]; then
-    echo "$bin is missing: build the CUDA version first"
+    echo "$bin is missing: run slurm/gpu_build.sbatch first"
     exit 1
 fi
 
-echo "rep=$REP"
+echo "rep=${REP:-1}"
 node_state start
 job_resources
 bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
-cmd=("$bin" --nx "$NX" --ny "$NX" --steps "$STEPS" --seed 42)
-echo "command: ${cmd[*]}"
-"${cmd[@]}"
-
+args=(--nx "$NX" --ny "$NY" --steps "$STEPS" --seed "$SEED" --ignitions "$IGNITIONS")
+echo "command: $bin ${args[*]}"
+out=$("$bin" "${args[@]}") || bad=1
+line=$(printf '%s\n' "$out" | grep '^RESULT')
+if [[ "${bad:-0}" -eq 0 && "$line" == *"checksum=$REFERENCE"* && "$line" == *"variant=cuda"* && "$line" == *"t_kernel="* ]]; then
+    printf '%s\n' "$out"
+    echo "checksum ok"
+    node_state end
+    exit 0
+fi
+printf '%s\n' "$out" | sed 's/^/FAILED OUTPUT: /'
+echo "checksum FAILED (wanted $REFERENCE)"
 node_state end
+exit 1

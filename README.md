@@ -74,7 +74,7 @@ Performance target (a goal, not a condition): ≥ 60 % strong-scaling efficiency
 
 **OpenMP (code ready).** `#pragma omp parallel for schedule(static)` over rows. The landscape is initialised in a parallel loop with the same schedule (first touch). Locally, OpenMP gives the same checksum as serial. Still to do: run on the cluster with `OMP_PROC_BIND=close, OMP_PLACES=cores`.
 
-**GPU (extra, to do).** CUDA kernel with the grid kept on the GPU between steps, plus an OpenACC version to compare. Timed with and without CPU↔GPU copies.
+**GPU (E10, code ready).** CUDA kernel (`make cuda`) with the grid kept on the GPU between steps, plus an OpenACC version (`make acc`, and `make acc-mc` if the GPU queue is blocked). Timed with and without the CPU↔GPU copies. Cluster timings are not in the repo until the jobs in [REPRODUCE.md](REPRODUCE.md) have been run.
 
 **Optimization (to do).** Overlap halo exchange with computation: post `MPI_Isend/Irecv`, update interior cells, then the boundary ring. Variant with `MPI_Test` calls, because many MPI libraries only move data inside MPI calls. If there is no gain, we show the timers that explain why.
 
@@ -134,7 +134,7 @@ flowchart LR
     make test-mpi        # MPI checks on 1-8 ranks: split, halo, checksum vs serial, snapshot
     make clean           # remove build/
 
-`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. `make mpi` uses `mpicc` with `-fopenmp`; on the cluster load `OpenMPI/4.1.6-GCC-13.2.0`. On a Mac: `brew install open-mpi`, then `OMPI_CC=gcc-16 make test-mpi` (with OpenMP) or `make test-mpi MPI_OMP=` (without). The GPU target will be added with its source.
+`make omp` needs gcc with OpenMP. On the cluster, load a GCC module first. On a Mac, `gcc` is Apple clang without OpenMP: install GCC with Homebrew and pass it explicitly, e.g. `make CC=gcc-16 omp`. The OpenMP test in `make test` takes its compiler from `OMP_CC` (default `gcc`), e.g. `OMP_CC=gcc-16 make test`. `make mpi` uses `mpicc` with `-fopenmp`; on the cluster load `OpenMPI/4.1.6-GCC-13.2.0`. On a Mac: `brew install open-mpi`, then `OMPI_CC=gcc-16 make test-mpi` (with OpenMP) or `make test-mpi MPI_OMP=` (without). The GPU binaries are built on a cluster GPU node, not on the login node: `make cuda` (module `hpc-course-cuda/12.8.1`) and `make acc` / `make acc-mc` (module `nvhpc/25.7`). See [REPRODUCE.md](REPRODUCE.md).
 
     ./build/firefront_serial --nx 1024 --ny 1024 --steps 200 --snapshot fire.pgm
     OMP_NUM_THREADS=4 ./build/firefront_omp --nx 1024 --ny 1024 --steps 200
@@ -194,7 +194,7 @@ flowchart LR
 - [x] MPI on the cluster: build and launcher check, E5 (strips vs blocks, 1 and 2 nodes, 51 runs, all with the serial checksum); 32 ranks on one node 2.62 s (31× serial), two nodes much slower over TCP; results in `docs/handover.md`, `results/tables/e5_summary.csv`, `results/figures/e5_*.png`
 - [ ] Hybrid runs on 1 and 2 nodes
 - [ ] Overlap optimization and profiling
-- [ ] GPU port (CUDA + OpenACC)
+- [x] GPU port, code: CUDA (`make cuda`) and OpenACC (`make acc`, `make acc-mc`). Checksum gate and jobs in [REPRODUCE.md](REPRODUCE.md). Cluster timings still to run
 - [ ] Report, EuroHPC scale-up plan and slides
 
 ---
