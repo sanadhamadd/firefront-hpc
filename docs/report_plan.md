@@ -35,22 +35,22 @@ If Blackboard gives a different date, the earlier date wins.
 | E8 code, cluster runs, paragraph for §7 | Alicia | (in §7) | code + tests + job scripts done; cluster runs to do |
 | §1 Problem and motivation | Alicia | 0.5 | draft (`docs/alicia_report_sections_1_2_4.md`) |
 | §2 Application architecture | Alicia | 0.75 | draft (same file) |
-| §3 HPC implementation | Sanad | 0.75 | to do |
+| §3 HPC implementation | Sanad | 0.75 | draft (`docs/sanad_section3_hpc_implementation.md`), ≈ 1 page, can be cut |
 | §4 Experimental methodology | Alicia | 0.75 | draft (same file) |
 | §5 Results (owner, assembles) | Alejandro | 1.5 total | E3/E4 draft (`docs/alejandro_section5_results.md`) |
 | └ input: E1, E2, STREAM, E6 | Alicia | 0.5 | done (`docs/alicia_section5_e1_e2_e6.md`) |
-| └ input: E5 | Sanad | 0.4 | to do |
+| └ input: E5 | Sanad | 0.4 | done (`docs/sanad_section5_e5.md`) |
 | §6 Bottleneck analysis | Khadeja | 0.75 | draft (`docs/e7-e9-report-draft.md`) |
 | §7 Optimisation | Khadeja | 0.75 | draft (same file) |
 | §8 Technology exploration + matrix | Rodrigo | 0.5 | to do |
 | §9 Conclusions | Alicia | 0.25 | to do (after §5–§8) |
 | **Report total** | | **≈ 7** | |
-| EuroHPC scale-up plan | Sanad | 1–2 | to do |
+| EuroHPC scale-up plan | Sanad | 1–2 | draft (`docs/eurohpc_scale_up_plan.md`), GPU part waits for E10 |
 | Slide 1 problem | Alicia | | draft (`docs/alicia_slide1.md`) |
-| Slide 2 HPC architecture | Sanad | | to do |
+| Slide 2 HPC architecture | Sanad | | draft (`docs/sanad_slide2.md`) |
 | Slide 3 scaling results | Alejandro | | draft |
 | Slide 4 bottleneck + optimisation | Khadeja | | draft, update to final E7 numbers |
-| Slide 5 GPU, lessons, EuroHPC | Rodrigo (+ one line from Sanad) | | to do |
+| Slide 5 GPU, lessons, EuroHPC | Rodrigo (+ one line from Sanad, at the end of `docs/eurohpc_scale_up_plan.md`) | | to do |
 
 Pages include figures. Aim for at most 5 figures in the report: E2 scaling, E6 size sweep, E3/E4, E5 or E7 communication, GPU.
 

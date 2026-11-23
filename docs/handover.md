@@ -111,7 +111,7 @@ Checked so far: serial = OpenMP for 1, 2, 4, 8 threads in `make test`; on the cl
 
 # Handover: phase 2 (MPI) → phase 3 (hybrid runs, overlap, profiling)
 
-From Sanad to Alejandro and Rodrigo. State of branch `halo-exchange`, merged into `main`.
+From Sanad to Alejandro and Khadeja. State of branch `halo-exchange`, merged into `main`.
 
 **Status.** The MPI version gives exactly the serial checksum on a laptop (1–16 ranks, strips and blocks, uneven grids, hybrid) and on the cluster: `make test-mpi` passed in build job 31993, and all 51 E5 runs gave `0xb8683c550fa95bd6`. E5 results are at the end of this section.
 
@@ -146,7 +146,7 @@ The build log must end with `all checks passed` and `all MPI checks passed`. The
 
 One node needs `--nodelist=haskell` on the command line (the script defaults to both nodes). With `--hint=nomultithread` every CPU of `--cpus-per-task` is a whole core, so ranks × threads ≤ 32 in total. `make_plots.py` already counts cores as ranks × threads; runs are grouped by variant, so MPI runs form their own series. Weak scaling (E4) only needs `NX` set per job, e.g. `--export=ALL,NX=4096,...`.
 
-## Rodrigo: overlap (E7) and profiling (E8, E9)
+## Khadeja: overlap (E7) and profiling (E8, E9)
 
 The hook is `update_block(s, r0, r1, c0, c1, step)` in `src/sim.c`: it updates any rectangle of own cells (rows r0..r1, columns c0..c1, local, 1 = first own cell), with OpenMP inside. `sim_step` today does:
 
@@ -184,4 +184,4 @@ What they show:
 - **It is not the second node's CPU:** julia (AMD EPYC 9745; haskell is a 9755) ran 8 ranks on its own in 10.72 s, `imbalance` 1.009, against 10.54 s on haskell (job 33981, `results/raw/e5_checks/`).
 - **The inter-node path costs most of it.** The runs use TCP between nodes because UCX crashed (see Known issues). In the crash tests, the 2-node runs that UCX did start were faster (8 ranks: about 11 s instead of 17 s, `results/raw/e5_ucx_tests/`), so part of the 2-node cost is the TCP fallback. Why the compute time itself becomes uneven across nodes is not measured; network processing on the same cores is a possible cause, not a confirmed one.
 
-For Rodrigo: the 2-node runs are where overlap can help most, since half of the run is spent in the halo exchange.
+For Khadeja: the 2-node runs are where overlap can help most, since half of the run is spent in the halo exchange.
