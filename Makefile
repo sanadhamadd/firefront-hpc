@@ -114,14 +114,21 @@ build/gpu_main_cuda.o: src/main.c $(HDRS)
 	@mkdir -p build
 	$(CC) $(CUDA_CFLAGS) $(DEFS) -DUSE_CUDA -DVARIANT=\"cuda\" -c -o $@ src/main.c
 
+# On SciTech, nvcc is inside the course container: NVCC="cuda-exec nvcc" and
+# NVCC_CCBIN= (the container has its own host compiler; cvmfs gcc is not mounted).
+NVCC_CCBIN ?= $(CC)
+ifneq ($(NVCC_CCBIN),)
+NVCC_CCBIN_FLAG = -ccbin $(NVCC_CCBIN)
+endif
+
 build/step_cuda.o: src/step_cuda.cu $(HDRS)
 	@mkdir -p build
-	$(NVCC) -ccbin $(CC) -O3 --fmad=false -Xptxas --fmad=false -arch=$(CUDA_ARCH) -std=c++17 -DUSE_CUDA \
+	$(NVCC) $(NVCC_CCBIN_FLAG) -O3 --fmad=false -Xptxas --fmad=false -arch=$(CUDA_ARCH) -std=c++17 -DUSE_CUDA \
 	  -Xcompiler -O3 -Xcompiler -ffp-contract=off -Xcompiler $(CUDA_HOST_MARCH) \
 	  -c -o $@ src/step_cuda.cu
 
 build/firefront_cuda: build/gpu_main_cuda.o build/step_cuda.o $(GPU_COMMON)
-	$(NVCC) -ccbin $(CC) -arch=$(CUDA_ARCH) -o $@ $^ -lm
+	$(NVCC) $(NVCC_CCBIN_FLAG) -arch=$(CUDA_ARCH) -o $@ $^ -lm
 
 cuda: build/firefront_cuda
 

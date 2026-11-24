@@ -27,8 +27,11 @@ module purge
 module load hpc-course-cuda/12.8.1 || exit 1
 module load OpenMPI/4.1.6-GCC-13.2.0 || exit 1   # GCC 13.2 after the CUDA module, so nvcc -ccbin gcc is that GCC
 echo "gcc: $(command -v gcc) $(gcc -dumpversion)"
-echo "nvcc: $(command -v nvcc)"
-nvcc --version | tail -n 1
+# nvcc is not on PATH. The module adds cuda-exec, which runs nvcc inside the container.
+command -v cuda-exec >/dev/null || { echo "cuda-exec is missing after loading hpc-course-cuda"; exit 1; }
+cuda-exec nvcc --version || exit 1
+export NVCC="cuda-exec nvcc"
+export NVCC_CCBIN=
 echo "== -march=znver4 on this compiler =="
 gcc -march=znver4 -Q --help=target | grep march
 
@@ -42,11 +45,11 @@ export CUDA_CHECK_E1=1
 make clean
 NATIVE=-march=znver4 make test
 status=$?
-if [ $status -ne 0 ]; then
+if [ $status -ne 0 ] || [ ! -x build/firefront_cuda ]; then
     echo "BUILD OR CUDA CHECK FAILED: removing build/firefront_cuda"
     rm -f build/firefront_cuda
     node_state end
-    exit $status
+    exit 1
 fi
 
 echo "cuda checksums ok"
