@@ -5,9 +5,15 @@
 
 set -u
 
-if ! command -v nvcc >/dev/null 2>&1; then
+if command -v cuda-exec >/dev/null 2>&1; then
+    export NVCC="cuda-exec nvcc"
+    export NVCC_CCBIN=
+    cuda_run=(cuda-exec ./build/firefront_cuda)
+elif ! command -v nvcc >/dev/null 2>&1; then
     echo "skipped: CUDA checksum test (nvcc not found)"
     exit 0
+else
+    cuda_run=(./build/firefront_cuda)
 fi
 if ! command -v nvidia-smi >/dev/null 2>&1 || ! nvidia-smi >/dev/null 2>&1; then
     echo "skipped: CUDA checksum test (no GPU)"
@@ -39,7 +45,7 @@ serial_verify() {
     ./build/firefront_serial "$@" --verify-only | grep '^VERIFY '
 }
 cuda_verify() {
-    ./build/firefront_cuda "$@" --verify-only | grep '^VERIFY '
+    "${cuda_run[@]}" "$@" --verify-only | grep '^VERIFY '
 }
 
 for args in \
@@ -60,7 +66,7 @@ if [ "${CUDA_CHECK_E1:-0}" = 1 ]; then
         "$(cuda_verify --nx 8192 --ny 8192 --steps 400 --seed 42 --ignitions 16)"
 fi
 
-line=$(./build/firefront_cuda --nx 64 --ny 64 --steps 5 --seed 1)
+line=$("${cuda_run[@]}" --nx 64 --ny 64 --steps 5 --seed 1)
 result=$(printf '%s\n' "$line" | grep '^RESULT')
 case "$result" in
     *"variant=cuda"*"t_kernel="*"t_with_copies="*) echo "ok:   cuda RESULT line has t_kernel and t_with_copies" ;;
@@ -68,7 +74,7 @@ case "$result" in
 esac
 
 err=$(mktemp)
-if ./build/firefront_cuda --nx 32 --ny 32 --steps 1 --skip-tiles 4 >/dev/null 2>"$err"; then
+if "${cuda_run[@]}" --nx 32 --ny 32 --steps 1 --skip-tiles 4 >/dev/null 2>"$err"; then
     echo "FAIL: cuda accepted --skip-tiles"
     fail=1
 elif grep -q "CPU-only" "$err"; then

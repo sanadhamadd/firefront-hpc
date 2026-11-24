@@ -39,8 +39,13 @@ bash tools/capture_env.sh > results/raw/env_${SLURM_JOB_ID}.txt
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader
 
 args=(--nx "$NX" --ny "$NX" --steps "$STEPS" --seed "$SEED" --ignitions "$IGNITIONS")
-echo "command: $bin ${args[*]}"
-out=$("$bin" "${args[@]}") || bad=1
+if command -v cuda-exec >/dev/null 2>&1; then
+    run=(cuda-exec "$bin")
+else
+    run=("$bin")
+fi
+echo "command: ${run[*]} ${args[*]}"
+out=$("${run[@]}" "${args[@]}") || bad=1
 line=$(printf '%s\n' "$out" | grep '^RESULT')
 ok=0
 note="checksum FAILED"
