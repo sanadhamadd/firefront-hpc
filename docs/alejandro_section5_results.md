@@ -1,13 +1,25 @@
 ## 5. Results
 
-We report the median of three runs per configuration, with the minimum and maximum showing the spread. All 30 runs used simulator commit `ce2e211` and matched the serial checksum for their grid. Each run simulated 400 steps. We timed 390 steps after a 10-step warm-up.
+Results are medians of three runs per configuration. Brackets and figure bars show the observed minimum and maximum.
 
-**Hybrid MPI/OpenMP (E3).** We kept the 8192 × 8192 grid and 32 physical cores fixed and changed the number of MPI ranks and OpenMP threads. On one node, the best median was 2.694 s with 8 ranks and 4 threads per rank, close to 2.699 s with 16 ranks and 2 threads. For the same splits, two nodes took 14.4–23.2% longer than one node. The best two-node median was 3.137 s with 32 ranks and one thread per rank. Median halo time rose from 0.363–0.418 s on one node to 0.801–0.927 s on two. Halo exchanges send boundary cells between neighboring ranks. On two nodes, some exchanges cross the network. The longer halo times help explain the slowdown, but the timer also includes time spent waiting for neighbors.
+<!-- E1, E2, STREAM and E6: ../results/tables/all.csv. E3: ../results/tables/e3_final.csv. E4: ../results/tables/e4_final.csv and ../results/tables/e4_final_runs.csv. E5: ../results/tables/e5_summary.csv. -->
 
-*Place Figure E3 here.* [Hybrid runtime and halo exchange](../results/figures/e3_report.pdf). **Caption.** Median runtime (a) and halo time (b) for each 32-core split. Bars show the minimum and maximum of three runs. Halo time is the longest time any rank spent in halo exchanges within a run.
+**E1/E2 · Baseline and strong scaling.** The serial E1 baseline was **81.95 s** [80.69–82.11]. At 32 physical cores, OpenMP took **3.24 s** [3.23–3.25], a **25.3×** speed-up over E1 and **79%** efficiency. Using 64 threads on the same 32 cores raised runtime to 3.50 s [3.49–3.52]. Figure E2 shows the speed-up falling below ideal as the core count rises.
 
-**Weak scaling (E4).** We grew the grid from 1024 × 1024 to 8192 × 4096 while keeping 1024² cells per physical core. Median runtime rose from 1.120 s on one core to 1.289, 1.406, and 1.895 s on 4, 16, and 32 cores. Efficiency fell to 86.9%, 79.7%, and 59.1%, respectively. At four cores, efficiency had already fallen with one MPI rank and no measured halo time. Median halo time reached 0.135 s at 16 cores and 0.595 s at 32 cores, consistent with more time spent exchanging data and waiting. The 32-core case also moved to two nodes, so we cannot tell how much of the slowdown came from the network alone. Runtime also varied more between repetitions at 16 and 32 cores.
+![OpenMP speed-up against serial E1](../results/figures/speedup_vs_cores.png)
 
-*Place Figure E4 here.* [Weak-scaling runtime and efficiency](../results/figures/e4_report.pdf). **Caption.** Median runtime (a) and weak-scaling efficiency (b). Runtime bars show the minimum and maximum of three runs. Efficiency is the one-core median divided by the median at each core count. Dashed lines show ideal weak scaling.
+*Figure E2. OpenMP speed-up over E1. The star shows two threads per physical core.*
 
-*Replace “Figure E3” and “Figure E4” with their final numbers in the shared report.*
+**STREAM/E6 · Bandwidth and grid size.** STREAM triad reached **68.0 GB/s** [67.4–68.0] on 32 physical cores. At 32 threads, the four E6 grids from 2048² to 16384² had median throughputs of 7,811–8,179 million cell updates/s, a spread of less than 5%. The sweep with fire spread disabled showed the same pattern. This suggests that memory bandwidth was not the main bottleneck in these runs.
+
+**E3 · Hybrid split.** With 32 physical cores, the best one-node median was **2.694 s** [2.612–2.801] with 8 ranks and 4 threads per rank. For each fixed split, two nodes took **14.4–23.2% longer** than one. Median halo time rose for all three splits.
+
+**E4 · Weak scaling.** With 1024² cells per physical core, runtime rose from **1.120 s** [1.096–1.316] on one core to **1.895 s** [1.867–2.505] on 32 cores. Figure E4 shows efficiency falling to **59.1%** at 32 cores. Each grid matched its own serial reference checksum.
+
+![Weak-scaling runtime and efficiency](../results/figures/e4_report.png)
+
+*Figure E4. Median runtime and efficiency at fixed cells per core. Runtime bars show min–max, and dashed lines show ideal scaling.*
+
+**E5 · MPI decomposition.** On one node with 32 ranks, blocks took **2.62 s** [2.58–2.85], versus **2.72 s** [2.62–2.76] for strips. At 32 ranks on two nodes, blocks still had the lower median within E5, at **4.56 s** [4.43–5.66] versus **4.98 s** [4.86–6.02]. On two nodes, both layouts spent about half the runtime in halo exchange, including time waiting for other ranks. E3 was a separate measurement campaign (§4).
+
+<!-- Final layout: place each figure after its paragraph and number it in the assembled report. Use about half the text width for E2 and up to the text width for E4. These are two of the report's five figure slots. Keep E6 and E5 numerical here so the remaining slots can cover communication or optimisation and GPU results. -->

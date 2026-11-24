@@ -1,17 +1,16 @@
-# Slide 3 · Hybrid performance and weak scaling
+# Slide 3 · Scaling results
 
-**E3 · One node won every split**
+| E2 · Strong scaling | E4 · Weak scaling |
+| :---: | :---: |
+| ![OpenMP speed-up against serial E1](../results/figures/speedup_vs_cores.png) | ![Weak-scaling runtime and efficiency](../results/figures/e4_report.png) |
+| **25.3× speed-up on 32 cores** | **59.1% efficiency on 32 cores** |
 
-![E3 median runtime and halo time on one and two nodes](../results/figures/e3_report.png)
-
-**E4 · 59% efficiency at 32 cores**
-
-![E4 weak-scaling runtime and efficiency](../results/figures/e4_report.png)
+**E3 · One node was faster for every split.**
 
 <!--
 Speaker notes (about 40 seconds)
 
-For E3, we kept the grid and the 32 cores fixed and changed how we split them between MPI and OpenMP. One node was faster for every split. The lowest one-node median was about 2.7 seconds. Time spent exchanging boundary cells and waiting for neighbors went up on two nodes.
+On the left is strong scaling. We kept the grid fixed and added cores. With 32 OpenMP threads, the simulation ran about 25 times faster than the serial version. In E3, we kept 32 cores and changed the mix of MPI ranks and OpenMP threads. One node was faster for every mix, and halo exchange took longer across two nodes.
 
-For E4, we kept the number of cells per core fixed as we added cores. Ideally, runtime would stay flat. Instead, efficiency fell to 59 percent at 32 cores. Communication helps explain the later drop, but efficiency was already falling before any halo exchange.
+On the right is weak scaling. We grew the grid with the core count to keep the same number of cells per core. Ideally the time would stay flat. It rose instead, and efficiency ended at 59 percent.
 -->
