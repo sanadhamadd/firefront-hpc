@@ -26,9 +26,18 @@ Every `RESULT` line records the commit the binary was built from (`commit=`), so
 | Grid-size sweep (E6), STREAM rerun | `7c686c8` | tag `v0.2-cluster` = `82d88cf` (same code) |
 | E5 (MPI decomposition, MPI part of E2) | `76eff8c` (submitted from `674dab1`) | |
 | E3, E4 (hybrid, weak scaling) | `ce2e211` | tag `v0.3-mpi` |
-| E7 (overlap), E9 (timers) | `4bf2cd1` | branch `khadija/e7-overlap-profiling`, merged in `0edabc4` |
-| E8 (kernel optimisation: tile skipping) | `dd8ea11` | merge of PR #5; build job 35387 |
-| E10 (GPU) | to be added | phase 3c |
+| E7 (overlap), E9 (timers) | `90043ce` | merge of PR #3: `056af80` |
+| E8 (kernel optimisation: tile skipping) | `76221f5` | merge of PR #5; build job 35387 |
+| E10 (GPU) | `8cd5e4e` | merge of PR #8 |
+
+On 24 Nov 2026 the commit messages and author names on `main` were tidied up, which gave four commits new IDs. No file changed. The logs and the tables in `results/` keep the ID that was printed at run time:
+
+| In the logs and tables | Now on `main` |
+|---|---|
+| `4bf2cd1` | `90043ce` |
+| `0edabc4` | `056af80` |
+| `dd8ea11` | `76221f5` |
+| `80d92af` | `8cd5e4e` |
 
 To rerun one experiment exactly, check out its commit (`git checkout ce2e211`) before building. To rerun everything with the current code, build `main`; the checksums must not change.
 
@@ -160,13 +169,13 @@ Each `RESULT` line ends with `skip_tiles=` and `active_tiles=` (share of tile up
 
 This writes `e8_summary.csv`, `e8_before_after.png`, `e8_tile_size.png` and `e8_mpi_balance.png`. `tools/make_plots.py` leaves E8 runs out of the E1/E2 figures.
 
-Run on 22 Nov 2026 from `dd8ea11` (build job 35387, `all checks passed` and `all MPI checks passed`): serial/OpenMP jobs 35403–35405, MPI jobs 35406–35428 (12 jobs). All 63 runs gave `0xb8683c550fa95bd6`. The serial/OpenMP jobs got cores 0–31 (four whole 8-core chiplets) on a quiet node; E2 had cores 14–45 with other jobs on the node, which is why the 32-thread run without skipping is faster here (2.36 s) than in E2 (3.24 s). Compare E8 before/after only within E8.
+Run on 22 Nov 2026 from `76221f5` (`dd8ea11` in the logs; build job 35387, `all checks passed` and `all MPI checks passed`): serial/OpenMP jobs 35403–35405, MPI jobs 35406–35428 (12 jobs). All 63 runs gave `0xb8683c550fa95bd6`. The serial/OpenMP jobs got cores 0–31 (four whole 8-core chiplets) on a quiet node; E2 had cores 14–45 with other jobs on the node, which is why the 32-thread run without skipping is faster here (2.36 s) than in E2 (3.24 s). Compare E8 before/after only within E8.
 
 Note: the build job now runs about 11–12 minutes because `make test-mpi` also checks `--skip-tiles`; submit it with `sbatch --time=00:20:00 slurm/build.sbatch` until PR #6 (20-minute limit in the script) is merged.
 
 ### E10 – GPU port (CUDA, OpenACC)
 
-Code commit on `main`: `80d92af` (merge of PR 8). The runs below are on `rodrigo/e10-results`.
+Code commit on `main`: `8cd5e4e` (merge of PR 8; `80d92af` in the logs). The runs below came in with PR #9.
 
 | | |
 |---|---|
@@ -185,12 +194,12 @@ Code commit on `main`: `80d92af` (merge of PR 8). The runs below are on `rodrigo
 
 The `cpu` partition would not start a job pinned to haskell while that node was held for the GPU partition, so 36549 and 36550–36552 were submitted with `--partition=interactive`. Same node, same binary.
 
-On the login node (`rust`), from a checkout of this branch:
+On the login node (`rust`), from an up-to-date `main`:
 
 ```bash
 git fetch origin
-git checkout rodrigo/e10-gpu
-git pull origin rodrigo/e10-gpu
+git checkout main
+git pull --ff-only origin main
 
 sbatch slurm/gpu_build.sbatch
 squeue -u "$USER"

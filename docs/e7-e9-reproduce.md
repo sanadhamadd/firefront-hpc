@@ -1,7 +1,7 @@
 # E7 overlap and E9 profiling
 
-Use the team’s current experiment numbers. Commit the reviewed source and scripts on
-`khadija/e7-overlap-profiling` and check out that same commit on SciTech. From the
+Use the team’s current experiment numbers. The code is on `main` (E7 runs: `90043ce`, see
+REPRODUCE.md); check out that same commit on SciTech. From the
 repository root on the login node, submit the build to a compute node:
 
 ```bash

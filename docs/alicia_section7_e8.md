@@ -1,6 +1,6 @@
 # Report draft: second optimisation (E8), for the end of §7
 
-Draft by Alicia, to add after Khadeja's E7 part of §7 (`docs/e7-e9-report-draft.md`). Target ≈ 0.4 page with one figure. All numbers from `results/tables/e8_summary.csv` (cluster jobs 35403–35428, commit `dd8ea11`, median of 3, every run gave the reference checksum). The last paragraph is input for Khadeja's §6.
+Draft by Alicia, to add after Khadeja's E7 part of §7 (`docs/e7-e9-report-draft.md`). Target ≈ 0.4 page with one figure. All numbers from `results/tables/e8_summary.csv` (cluster jobs 35403–35428, commit `76221f5`, median of 3, every run gave the reference checksum). The last paragraph is input for Khadeja's §6.
 
 ---
 
